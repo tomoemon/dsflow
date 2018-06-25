@@ -120,7 +120,9 @@ dsflow rename \
 {src_datastore_path} gs://{BUCKET}/{OUTPUT_PREFIX}
 ```
 
-jsonl 形式（1行単位で json）で出力します。
+独自の方法でシリアライズした文字列を jsonl 形式（1行単位の json）で出力します。
+- Timestamp型は isoformat の文字列に変換します
+- キー型は `__key__` というプロパティ下に値をセットします
 
 # Roadmap
 

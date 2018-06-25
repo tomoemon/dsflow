@@ -42,23 +42,6 @@ class DatastorePath(object):
         return self.path
 
 
-# >> > def perfect_square(string):
-# ...     value = int(string)
-# ...     sqrt = math.sqrt(value)
-# ... if sqrt != int(sqrt):
-# ...         msg = "%r is not a perfect square" % string
-# ... raise argparse.ArgumentTypeError(msg)
-# ... return value
-# ...
-# >> > parser = argparse.ArgumentParser(prog='PROG')
-# >> > parser.add_argument('foo', type=perfect_square)
-# >> > parser.parse_args(['9'])
-# Namespace(foo=9)
-# >> > parser.parse_args(['7'])
-# usage: PROG[-h] foo
-# PROG: error: argument foo: '7' is not a perfect square
-
-
 if __name__ == '__main__':
     import sys
     print(DatastorePath.parse(sys.argv[1]))

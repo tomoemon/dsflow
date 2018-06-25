@@ -2,14 +2,11 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import apache_beam as beam
-from apache_beam.io import WriteToText
-from apache_beam.options.pipeline_options import PipelineOptions, GoogleCloudOptions
-from apache_beam.io.gcp.datastore.v1.datastoreio import ReadFromDatastore, WriteToDatastore, DeleteFromDatastore
+from apache_beam.options.pipeline_options import GoogleCloudOptions
+from apache_beam.io.gcp.datastore.v1.datastoreio import ReadFromDatastore, WriteToDatastore
 import logging
-import itertools
 from dsflow.datastore.query import Query, _pb_from_query
 from dsflow.datastorepath import DatastorePath
-from dsflow.gcspath import GCSPath
 
 
 """
@@ -61,7 +58,12 @@ class CopyOptions(GoogleCloudOptions):
 
 
 def run():
+    from os import path
     import sys
+
+    # DirectRunner で実行した際に datastore パッケージを見つけるため
+    sys.path.insert(0, path.dirname(path.abspath(__file__)))
+
     args = sys.argv[1:]
     options = CopyOptions(args)
     query = Query(kind=options.src.kind)
@@ -90,6 +92,5 @@ def run():
 
 
 if __name__ == '__main__':
-    import logging
     logging.getLogger().setLevel(logging.INFO)
     run()

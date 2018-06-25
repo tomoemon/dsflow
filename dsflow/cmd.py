@@ -9,19 +9,39 @@ from dsflow.datastorepath import DatastorePath
 from dsflow.gcspath import GCSPath
 
 
-def format_command_arg(positional_list, optional_dict):
+def dataflow_arguments(args):
+    # "setup.py" という名前のファイルじゃないとエラーになる
+    runtime_setup_path = path.join(path.dirname(path.abspath(__file__)), "setup.py")
+    return {
+        "setup_file": runtime_setup_path,
+        "staging_location": args.staging_location,
+        "temp_location": args.temp_location,
+        "project": args.job_project,
+        "runner": args.runner,
+    }
+
+
+def format_command_arg(positional_list, *optional_dicts):
     positional = ""
     if positional_list:
-        positional = '"' + '" "'.join(positional_list) + '"' + " "
+        positional = '"' + '" "'.join(p.replace('"', '\\"') for p in positional_list) + '" '
 
+    optional_dict = merge_dict(*optional_dicts)
     options = []
     for k, v in optional_dict.items():
         if isinstance(v, bool):
-            if v == True:
+            if v:
                 options.append("--" + k)
         else:
             options.append('--{} "{}"'.format(k, v))
     return positional + " ".join(options)
+
+
+def merge_dict(*dicts):
+    result = {}
+    for d in dicts:
+        result.update(d)
+    return result
 
 
 def command_dump(args):
@@ -29,10 +49,10 @@ def command_dump(args):
         [args.src.path, args.output.path],
         {
             "keys_only": args.keys_only,
-        }
-    ) + format_dataflow_arguments(args)
+            "format": args.format,
+        },
+        dataflow_arguments(args))
 
-    print("dump: " + arg_string)
     os.system("python -m dsflow.dsdump " + arg_string)
 
 
@@ -41,24 +61,22 @@ def command_copy(args):
         raise Exception(u'''can't copy from "{}" to "{}"'''.format(args.src.path, args.dst.path))
 
     arg_string = format_command_arg(
-        [args.src.path, args.dst.path], {}
-    ) + format_dataflow_arguments(args)
+        [args.src.path, args.dst.path],
+        dataflow_arguments(args))
 
     if args.clear_dst:
         delete_args = argparse.Namespace(**vars(args))
         delete_args.src = args.dst
         command_delete(delete_args)
 
-    print("copy: " + arg_string)
     os.system("python -m dsflow.dscopy " + arg_string)
 
 
 def command_delete(args):
     arg_string = format_command_arg(
-        [args.src.path], {}
-    ) + format_dataflow_arguments(args)
+        [args.src.path],
+        dataflow_arguments(args))
 
-    print("delete: " + arg_string)
     os.system("python -m dsflow.dsdelete " + arg_string)
 
 
@@ -74,19 +92,8 @@ def add_dataflow_arguments(parser):
     parser.add_argument('-P', '--job-project', action=EnvDefault, envvar='DS_JOB_PROJECT')
     parser.add_argument('-T', '--temp-location', action=EnvDefault, envvar='DS_TEMP_LOCATION')
     parser.add_argument('-S', '--staging-location', action=EnvDefault, envvar='DS_STAGING_LOCATION')
-    parser.add_argument('-R', '--runner', action=EnvDefault, envvar='DS_RUNNER', default="DataflowRunner")
-
-
-def format_dataflow_arguments(args):
-    # "setup.py" という名前のファイルじゃないとエラーになる
-    runtime_setup_path = path.join(path.dirname(path.abspath(__file__)), "setup.py")
-    return format_command_arg([], {
-        "setup_file": runtime_setup_path,
-        "staging_location": args.staging_location,
-        "temp_location": args.temp_location,
-        "project": args.job_project,
-        "runner": args.runner,
-    })
+    parser.add_argument('-R', '--runner', action=EnvDefault,
+                        choices=["DataflowRunner", "DirectRunner"], envvar='DS_RUNNER', default="DataflowRunner")
 
 
 def parse():
@@ -98,6 +105,7 @@ def parse():
     parser_dump.add_argument('src', type=DatastorePath.parse)
     parser_dump.add_argument('output', type=GCSPath.parse, help='all files')
     parser_dump.add_argument('--keys-only', action="store_true", default=False, help='all files')
+    parser_dump.add_argument('--format', choices=["json", "raw"], default="json")
     add_dataflow_arguments(parser_dump)
     parser_dump.set_defaults(handler=command_dump)
 
