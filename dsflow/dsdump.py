@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import apache_beam as beam
 from apache_beam.io import WriteToText
 from apache_beam.options.pipeline_options import PipelineOptions, GoogleCloudOptions
 from apache_beam.io.gcp.datastore.v1.datastoreio import ReadFromDatastore, WriteToDatastore, DeleteFromDatastore
 import logging
 import itertools
-from datastore.query import Query, _pb_from_query
-from datastorepath import DatastorePath
-from gcspath import GCSPath
+from dsflow.datastore.query import Query, _pb_from_query
+from dsflow.datastorepath import DatastorePath
+from dsflow.gcspath import GCSPath
 
 
 """

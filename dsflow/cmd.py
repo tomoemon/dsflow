@@ -4,9 +4,9 @@ from __future__ import absolute_import
 import os
 from os import path
 import argparse
-from envdefault import EnvDefault
-from datastorepath import DatastorePath
-from gcspath import GCSPath
+from dsflow.envdefault import EnvDefault
+from dsflow.datastorepath import DatastorePath
+from dsflow.gcspath import GCSPath
 
 
 def format_command_arg(positional_list, optional_dict):

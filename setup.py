@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import setuptools
 
 
 setuptools.setup(
     name='dsflow',
-    version='0.0.1',
+    version='0.1.0',
     author="tomoemon",
     install_requires=[
         "google-api-core",
