@@ -85,9 +85,11 @@ def run():
 
     # namespace を指定しない(==None)と [default] namespace が使われる
     p = beam.Pipeline(options=options)
-    p | 'ReadFromDatastore' >> ReadFromDatastore(project=options.src.project, query=query_pb, namespace=options.src.namespace) \
-      | 'ChangeKey' >> beam.ParDo(changer) \
-      | 'WriteToDatastore' >> WriteToDatastore(options.dst.project)
+    p | 'ReadFromDatastore' >> ReadFromDatastore(project=options.src.project,
+                                                 query=query_pb,
+                                                 namespace=options.src.namespace) \
+        | 'ChangeKey' >> beam.ParDo(changer) \
+        | 'WriteToDatastore' >> WriteToDatastore(options.dst.project)
     p.run().wait_until_finish()
 
 
