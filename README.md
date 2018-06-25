@@ -12,6 +12,10 @@ Dataflow ジョブを実行すると、内部で GCE インスタンスが立ち
 ### 費用
 
 Datastore は1エンティティ単位の読み書きで費用が発生します。大量のデータ操作を行う場合は注意してください。
+https://cloud.google.com/datastore/pricing?hl=ja
+
+デフォルトの動作である Dataflow ジョブを使う方法（`runner=DataflowRunner`）ではなく、ローカルマシンをバックエンドとして実行（`runner=DirectRunner`）することもできますが、ローカルで実行する場合はDatastoreの読み書きの費用に加えて、ネットワークトラフィックに関する費用も発生します。
+https://cloud.google.com/compute/pricing?hl=ja#internet_egress
 
 ### アトミック性
 
