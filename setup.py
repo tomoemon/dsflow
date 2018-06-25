@@ -8,6 +8,7 @@ setuptools.setup(
     version='0.0.1',
     author="tomoemon",
     install_requires=[
+        "google-api-core",
         "google",
         "protobuf",  # see https://stackoverflow.com/questions/38680593/importerror-no-module-named-google-protobuf
         "apache_beam[gcp]",
