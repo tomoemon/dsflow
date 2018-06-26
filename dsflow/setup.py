@@ -6,7 +6,7 @@ import setuptools
 
 setuptools.setup(
     name='dsflow',
-    version='0.1.0',
+    version='0.1.1',
     install_requires=[
     ],
     packages=setuptools.find_packages(),

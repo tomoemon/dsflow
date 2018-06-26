@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import absolute_import
 from __future__ import unicode_literals
-import argparse
+from argparse import ArgumentTypeError
 import re
 
 
@@ -17,10 +17,15 @@ class GCSPath(object):
         return self._path
 
     @classmethod
+    def validate(cls, string):
+        gcs_path = cls.parse(string)
+        return gcs_path.path
+
+    @classmethod
     def parse(cls, string):
         match = cls.path_pattern.match(string)
         if not match:
-            raise argparse.ArgumentTypeError("datastore path must be formatted like gs://*")
+            raise ArgumentTypeError("gcs path must be formatted like gs://*")
         path = match.group(0)
         return cls(path)
 

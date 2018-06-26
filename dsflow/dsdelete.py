@@ -9,16 +9,6 @@ from dsflow.datastore.query import Query, _pb_from_query
 from dsflow.datastorepath import DatastorePath
 
 
-"""
-python dsflow/cmd.py copy \
--P my-dataflow-dev \
--T gs://my-dataflow-dev.appspot.com/temp \
--S gs://my-dataflow-dev.appspot.com/staging \
-//experiment/TestStory2 \
-//experiment/TestStory3
-"""
-
-
 class DeleteOptions(GoogleCloudOptions):
     @classmethod
     def _add_argparse_args(cls, parser):

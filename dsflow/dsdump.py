@@ -11,16 +11,6 @@ from dsflow.datastorepath import DatastorePath
 from dsflow.gcspath import GCSPath
 
 
-"""
-python dsflow/cmd.py dump \
--P my-dataflow-dev \
--T gs://my-dataflow-dev.appspot.com/temp \
--S gs://my-dataflow-dev.appspot.com/staging \
-//experiment/TestStory2 \
-gs://my-dataflow-dev.appspot.com/result_dump_.txt
-"""
-
-
 class RawFormat(beam.DoFn):
     def process(self, element):
         return [element]
@@ -65,11 +55,8 @@ class JsonFormat(beam.DoFn):
 class DumpOptions(GoogleCloudOptions):
     @classmethod
     def _add_argparse_args(cls, parser):
-        # 位置引数だと Dataflow のジョブ管理画面でパイプライン引数が表示されないため、
-        # bin/dsflow が受け付けるコマンド引数とはあえて違う形式で受け取る
-        # （と思ったが、名前付きにしても管理画面に表示されていない。謎）
         parser.add_argument('src', type=DatastorePath.parse)
-        parser.add_argument('output', type=GCSPath.parse)
+        parser.add_argument('dst', type=GCSPath.parse)
         parser.add_argument('--format', choices=["json", "raw"], default="json")
         parser.add_argument('--keys-only', action="store_true", default=False)
 
@@ -107,7 +94,7 @@ def run():
                                                  query=query_pb,
                                                  namespace=options.src.namespace) \
         | 'Format' >> beam.ParDo(formatter) \
-        | 'WriteToText' >> WriteToText(options.output.path)
+        | 'WriteToText' >> WriteToText(options.dst.path)
     p.run().wait_until_finish()
 
 

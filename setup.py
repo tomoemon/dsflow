@@ -7,7 +7,7 @@ import setuptools
 
 setuptools.setup(
     name='dsflow',
-    version='0.1.0',
+    version='0.1.1',
     author="tomoemon",
     install_requires=[
         "google-api-core",

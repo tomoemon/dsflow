@@ -9,16 +9,6 @@ from dsflow.datastore.query import Query, _pb_from_query
 from dsflow.datastorepath import DatastorePath
 
 
-"""
-python dsflow/cmd.py copy \
--P my-dataflow-dev \
--T gs://my-dataflow-dev.appspot.com/temp \
--S gs://my-dataflow-dev.appspot.com/staging \
-//experiment/TestStory2 \
-//experiment/TestStory3
-"""
-
-
 class ChangeKind(beam.DoFn):
     def __init__(self, to_project, to_namespace, to_kind):
         self.to_project = to_project
@@ -54,7 +44,6 @@ class CopyOptions(GoogleCloudOptions):
     def _add_argparse_args(cls, parser):
         parser.add_argument('src', type=DatastorePath.parse)
         parser.add_argument('dst', type=DatastorePath.parse)
-        parser.add_argument('--clear-dst', action="store_true", default=False)
 
 
 def run():

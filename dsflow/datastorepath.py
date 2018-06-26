@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import absolute_import
 from __future__ import unicode_literals
-import argparse
+from argparse import ArgumentTypeError
 import re
 
 
@@ -14,9 +14,8 @@ class DatastorePath(object):
         self.namespace = namespace if namespace else None
         self.kind = kind if kind else None
 
-    @classmethod
-    def is_consistent(cls, src, dst):
-        if (src.kind and dst.kind) or (not src.kind and not dst.kind):
+    def is_consistent_with(self, dst):
+        if (self.kind and dst.kind) or (not self.kind and not dst.kind):
             return True
         return False
 
@@ -29,10 +28,15 @@ class DatastorePath(object):
         return "/{}/{}".format(project, namespace)
 
     @classmethod
+    def validate(cls, string):
+        datastore_path = cls.parse(string)
+        return datastore_path.path
+
+    @classmethod
     def parse(cls, string):
         match = cls.path_pattern.match(string)
         if not match:
-            raise argparse.ArgumentTypeError("datastore path must be formatted /{PROJECT}/{NAMESPACE}/{KIND}")
+            raise ArgumentTypeError("datastore path must be formatted /{PROJECT}/{NAMESPACE}/{KIND}")
         project = match.group(1)
         namespace = match.group(2)
         kind = match.group(4)
