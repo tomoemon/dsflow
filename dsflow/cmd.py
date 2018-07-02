@@ -5,8 +5,9 @@ import os
 from os import path
 import argparse
 from dsflow.envdefault import EnvDefault
-from dsflow.datastorepath import DatastorePath
-from dsflow.gcspath import GCSPath
+from dsflow import dsdump
+from dsflow import dscopy
+from dsflow import dsdelete
 
 
 class ArgumentError(Exception):
@@ -20,7 +21,7 @@ def format_dataflow_arg(args, parser, excepts=None):
     if not excepts:
         excepts = []
 
-    excepts.extend(["help", "_handler", "_parser"])
+    excepts.extend(["help", "_formatter"])
 
     for a in parser._positionals._group_actions:
         if a.dest in excepts:
@@ -46,41 +47,41 @@ def format_command_arg(positional_list, optional_dict):
         positional = '"' + '" "'.join(str(p).replace('"', '\\"') for p in positional_list) + '" '
 
     options = []
-    for k, v in optional_dict.items():
+    for k, v in sorted(optional_dict.items()):
         if isinstance(v, bool):
             if v:
                 options.append("--" + k)
         else:
-            options.append('--{} "{}"'.format(str(k), str(v)))
+            options.append('--{} "{}"'.format(str(k), str(v).replace('"', '\\"')))
     return positional + " ".join(options)
 
 
 def command_dump(args, parsers):
     arg_string = format_dataflow_arg(args, parsers["dump"])
-    os.system("python -m dsflow.dsdump " + arg_string)
+    return ["python -m dsflow.dsdump " + arg_string]
 
 
 def command_copy(args, parsers):
     if not args.src.is_consistent_with(args.dst):
-        raise ArgumentError('''can't copy from "{}" to "{}"'''.format(args.src.path, args.dst.path))
+        raise ArgumentError('''can't copy from "{}" to "{}"'''.format(str(args.src), str(args.dst)))
 
+    delete_command = []
     if args.clear_dst:
         delete_args = argparse.Namespace(**vars(args))
         delete_args.src = args.dst
-        command_delete(delete_args, parsers)
+        delete_command = command_delete(delete_args, parsers)
 
     arg_string = format_dataflow_arg(args, parsers["copy"], ["clear_dst"])
-    os.system("python -m dsflow.dscopy " + arg_string)
+    return delete_command + ["python -m dsflow.dscopy " + arg_string]
 
 
 def command_delete(args, parsers):
     arg_string = format_dataflow_arg(args, parsers["delete"])
-    os.system("python -m dsflow.dsdelete " + arg_string)
+    return ["python -m dsflow.dsdelete " + arg_string]
 
 
 def command_rename(args, parsers):
-    command_copy(args, parsers)
-    command_delete(args, parsers)
+    return command_copy(args, parsers) + command_delete(args, parsers)
 
 
 def add_dataflow_arguments(parser):
@@ -95,55 +96,56 @@ def add_dataflow_arguments(parser):
     parser.set_defaults(setup_file=runtime_setup_path)
 
 
-def parse():
+def parse(args):
     parser = argparse.ArgumentParser(description='dsflow supports data maintainance on cloud datastore')
     subparsers = parser.add_subparsers()
 
     # dump command parser
     parser_dump = subparsers.add_parser('dump', help='dump namespace or kind')
-    parser_dump.add_argument('src', type=DatastorePath.parse)
-    parser_dump.add_argument('dst', type=GCSPath.parse)
-    parser_dump.add_argument('--keys-only', action="store_true", default=False)
-    parser_dump.add_argument('--format', choices=["json", "raw"], default="json")
+    dsdump.DumpOptions._add_argparse_args(parser_dump)
     add_dataflow_arguments(parser_dump)
-    parser_dump.set_defaults(_handler=command_dump)
+    parser_dump.set_defaults(_formatter=command_dump)
 
     # copy command parser
     parser_copy = subparsers.add_parser('copy', help='copy namespace or kind')
-    parser_copy.add_argument('src', type=DatastorePath.parse)
-    parser_copy.add_argument('dst', type=DatastorePath.parse)
+    dscopy.CopyOptions._add_argparse_args(parser_copy)
     parser_copy.add_argument('--clear-dst', action="store_true", default=False)
     add_dataflow_arguments(parser_copy)
-    parser_copy.set_defaults(_handler=command_copy)
+    parser_copy.set_defaults(_formatter=command_copy)
 
     # rename command parser
     parser_rename = subparsers.add_parser('rename', help='rename namespace or kind')
-    parser_rename.add_argument('src', type=DatastorePath.parse)
-    parser_rename.add_argument('dst', type=DatastorePath.parse)
+    dscopy.CopyOptions._add_argparse_args(parser_rename)
     parser_rename.add_argument('--clear-dst', action="store_true", default=False)
     add_dataflow_arguments(parser_rename)
-    parser_rename.set_defaults(_handler=command_rename)
+    parser_rename.set_defaults(_formatter=command_rename)
 
     # delete command parser
     parser_delete = subparsers.add_parser('delete', help='delete namespace or kind')
-    parser_delete.add_argument('src', type=DatastorePath.parse)
+    dsdelete.DeleteOptions._add_argparse_args(parser_delete)
     add_dataflow_arguments(parser_delete)
-    parser_delete.set_defaults(_handler=command_delete)
+    parser_delete.set_defaults(_formatter=command_delete)
 
-    args = parser.parse_args()
-    if hasattr(args, '_handler'):
+    args = parser.parse_args(args)
+    if hasattr(args, '_formatter'):
         try:
-            args._handler(args, subparsers.choices)
+            return args._formatter(args, subparsers.choices)
         except ArgumentError as e:
             parser.print_help()
             print(u"\nError: " + unicode(e))
     else:
         parser.print_help()
+    return []
 
 
-def run():
-    parse()
+def run(args):
+    # remove command name itself
+    args = args[1:]
+    commands = parse(args)
+    for cmd in commands:
+        os.system(cmd)
 
 
 if __name__ == '__main__':
-    run()
+    import sys
+    run(sys.argv)

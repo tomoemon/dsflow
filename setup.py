@@ -2,12 +2,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
+import sys
 import setuptools
 
+needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
+pytest_runner = ['pytest-runner'] if needs_pytest else []
 
 setuptools.setup(
     name='dsflow',
-    version='0.1.1',
+    version='0.1.2',
     author="tomoemon",
     install_requires=[
         "google-api-core",
@@ -22,6 +25,8 @@ setuptools.setup(
         "oauth2client>=2.0.1,<4",
         "httplib2<0.10,>=0.9.1",
     ],
+    setup_requires=[] + pytest_runner,
+    tests_require=["pytest"],
     python_requires=">=2.7,<3",
     packages=setuptools.find_packages(),
     scripts=['bin/dsflow'],
