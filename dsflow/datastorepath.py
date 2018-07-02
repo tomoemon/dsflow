@@ -10,9 +10,9 @@ class DatastorePath(object):
     path_pattern = re.compile(r'^/([^/]*)/([^/]+)(/([^/]+))?$')
 
     def __init__(self, project, namespace, kind):
-        self.project = project if project else None
-        self.namespace = namespace if namespace else None
-        self.kind = kind if kind else None
+        self.project = project
+        self.namespace = namespace
+        self.kind = kind
 
     def is_consistent_with(self, dst):
         if (self.kind and dst.kind) or (not self.kind and not dst.kind):
@@ -21,11 +21,9 @@ class DatastorePath(object):
 
     @property
     def path(self):
-        project = self.project if self.project else ""
-        namespace = self.namespace if self.namespace else ""
         if self.kind:
-            return "/{}/{}/{}".format(project, namespace, self.kind)
-        return "/{}/{}".format(project, namespace)
+            return "/{}/{}/{}".format(self.project, self.namespace, self.kind)
+        return "/{}/{}".formats(self.project, self.namespace)
 
     @classmethod
     def validate(cls, string):
