@@ -67,7 +67,7 @@ dsflow copy \
 -P {PROJECT_NAME} \
 -T gs://{BUCKET}/{TEMPORARY_PREFIX} \
 -S gs://{BUCKET}/{STAGING_PREFIX} \
-//default/User //default/User2
+//@default/User //@default/User2
 ```
 
 例：ジョブを実行するプロジェクトと同じプロジェクト内で、
@@ -78,7 +78,18 @@ dsflow copy \
 -P {PROJECT_NAME} \
 -T gs://{BUCKET}/{TEMPORARY_PREFIX} \
 -S gs://{BUCKET}/{STAGING_PREFIX} \
-//default //staging
+//@default //staging
+```
+
+例：ジョブを実行するプロジェクトと同じプロジェクト内で、
+`default` namespace に含まれる User と Log kind を `staging` namespace にコピーする場合
+
+```
+dsflow copy \
+-P {PROJECT_NAME} \
+-T gs://{BUCKET}/{TEMPORARY_PREFIX} \
+-S gs://{BUCKET}/{STAGING_PREFIX} \
+//@default/User,Log //staging
 ```
 
 例：ジョブを実行するプロジェクトと同じプロジェクト内で、
@@ -90,7 +101,7 @@ dsflow copy \
 -P {PROJECT_NAME} \
 -T gs://{BUCKET}/{TEMPORARY_PREFIX} \
 -S gs://{BUCKET}/{STAGING_PREFIX} \
-//default //staging
+//@default //staging
 --clear-dst
 ```
 
@@ -101,8 +112,10 @@ dsflow delete \
 -P {PROJECT_NAME} \
 -T gs://{BUCKET}/{TEMPORARY_PREFIX} \
 -S gs://{BUCKET}/{STAGING_PREFIX} \
-{datastore_path}
+{src_datastore_path}
 ```
+
+`{src_datastore_path}` の指定方法は copy コマンドと同様。
 
 ## renameコマンド
 
@@ -114,6 +127,8 @@ dsflow rename \
 {src_datastore_path} {dst_datastore_path}
 ```
 
+`{src_datastore_path}` `{dst_datastore_path}` の指定方法は copy コマンドと同様。
+
 注意：リネーム操作の実体は copy＋deleteです。アトミックにリネームをするわけではないので、途中でエラーが発生した場合はコピーだけされている可能性があります。
 
 ## dump コマンド
@@ -123,8 +138,10 @@ dsflow rename \
 -P {PROJECT_NAME} \
 -T gs://{BUCKET}/{TEMPORARY_PREFIX} \
 -S gs://{BUCKET}/{STAGING_PREFIX} \
-{src_datastore_path} gs://{BUCKET}/{OUTPUT_PREFIX}
+{src_datastore_path} {dst_path}
 ```
+
+`{src_datastore_path}` の指定方法は copy コマンドと同様。`{dst_path}` は GCS パス (`gs://*`) またはローカルのファイルシステムのパス。
 
 独自の方法でシリアライズした文字列を jsonl 形式（1行単位の json）で出力します。
 - Timestamp型は isoformat の文字列に変換します

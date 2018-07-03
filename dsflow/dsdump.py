@@ -3,12 +3,10 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import apache_beam as beam
 from apache_beam.io import WriteToText
-from apache_beam.options.pipeline_options import PipelineOptions, GoogleCloudOptions
-from apache_beam.io.gcp.datastore.v1.datastoreio import ReadFromDatastore
+from apache_beam.options.pipeline_options import GoogleCloudOptions
 import logging
-from dsflow.datastore.query import Query, _pb_from_query
-from dsflow.datastorepath import DatastorePath
-from dsflow.gcspath import GCSPath
+from dsflow.datastorepath import DatastoreSrcPath
+from dsflow.beamutil import create_multi_datasource_reader
 
 
 class RawFormat(beam.DoFn):
@@ -55,8 +53,8 @@ class JsonFormat(beam.DoFn):
 class DumpOptions(GoogleCloudOptions):
     @classmethod
     def _add_argparse_args(cls, parser):
-        parser.add_argument('src', type=DatastorePath.parse)
-        parser.add_argument('dst', type=GCSPath.parse)
+        parser.add_argument('src', type=DatastoreSrcPath.parse)
+        parser.add_argument('dst')
         parser.add_argument('--format', choices=["json", "raw"], default="json")
         parser.add_argument('--keys-only', action="store_true", default=False)
 
@@ -70,31 +68,23 @@ def run():
 
     args = sys.argv[1:]
 
-    pipeline_options = PipelineOptions(args)
-    options = pipeline_options.view_as(DumpOptions)
-
-    query = Query(kind=options.src.kind)
-    if options.keys_only:
-        query.keys_only()
-    query_pb = _pb_from_query(query)
+    options = DumpOptions(args)
 
     if not options.src.project:
         options.src.project = options.project
-    if options.src.namespace == "default":
-        options.src.namespace = ""
 
     if options.format == "json":
         formatter = JsonFormat()
     else:
         formatter = RawFormat()
 
-    # namespace を指定しない(==None)と [default] namespace が使われる
-    p = beam.Pipeline(options=pipeline_options)
-    p | 'ReadFromDatastore' >> ReadFromDatastore(project=options.src.project,
-                                                 query=query_pb,
-                                                 namespace=options.src.namespace) \
-        | 'Format' >> beam.ParDo(formatter) \
-        | 'WriteToText' >> WriteToText(options.dst.path)
+    p = beam.Pipeline(options=options)
+    sources = create_multi_datasource_reader(
+        p, options.src.project, options.src.namespace, options.src.kinds, options.keys_only)
+
+    sources | beam.Flatten() \
+            | 'Format' >> beam.ParDo(formatter) \
+            | 'WriteToText' >> WriteToText(options.dst.path)
     p.run().wait_until_finish()
 
 

@@ -58,6 +58,54 @@ def test_dump_command_with_right_args():
                       ' --temp_location "gs://temp"']
 
 
+def test_dump_command_with_default_namespace():
+    setup_path = path.join(os.getcwd(), "dsflow", "setup.py")
+
+    parsed = cmd.parse(
+        "dump -P proj -T gs://temp -S gs://staging //@default/srckind gs://dst".split(" "))
+    assert parsed == ['python -m dsflow.dsdump'
+                      ' "///srckind"'
+                      ' "gs://dst"'
+                      ' --format "json"'
+                      ' --project "proj"'
+                      ' --runner "DataflowRunner"'
+                      ' --setup_file "' + setup_path + '"'
+                      ' --staging_location "gs://staging"'
+                      ' --temp_location "gs://temp"']
+
+
+def test_dump_command_with_empty_namespace():
+    setup_path = path.join(os.getcwd(), "dsflow", "setup.py")
+
+    parsed = cmd.parse(
+        "dump -P proj -T gs://temp -S gs://staging ///srckind gs://dst".split(" "))
+    assert parsed == ['python -m dsflow.dsdump'
+                      ' "///srckind"'
+                      ' "gs://dst"'
+                      ' --format "json"'
+                      ' --project "proj"'
+                      ' --runner "DataflowRunner"'
+                      ' --setup_file "' + setup_path + '"'
+                      ' --staging_location "gs://staging"'
+                      ' --temp_location "gs://temp"']
+
+
+def test_dump_command_with_multi_kinds():
+    setup_path = path.join(os.getcwd(), "dsflow", "setup.py")
+
+    parsed = cmd.parse(
+        "dump -P proj -T gs://temp -S gs://staging //srcnamespace/srckind1,srckind2 gs://dst".split(" "))
+    assert parsed == ['python -m dsflow.dsdump'
+                      ' "//srcnamespace/srckind1,srckind2"'
+                      ' "gs://dst"'
+                      ' --format "json"'
+                      ' --project "proj"'
+                      ' --runner "DataflowRunner"'
+                      ' --setup_file "' + setup_path + '"'
+                      ' --staging_location "gs://staging"'
+                      ' --temp_location "gs://temp"']
+
+
 def test_copy_command_with_right_args():
     setup_path = path.join(os.getcwd(), "dsflow", "setup.py")
 
@@ -71,6 +119,15 @@ def test_copy_command_with_right_args():
                       ' --setup_file "' + setup_path + '"'
                       ' --staging_location "gs://staging"'
                       ' --temp_location "gs://temp"']
+
+
+def test_copy_command_with_multi_dst(capsys):
+    with pytest.raises(SystemExit):
+        result = cmd.parse(
+            "copy -P proj -T gs://temp -S gs://staging //srcnamespace/srckind //dstnamespace/dstkind1,dstkind2".split(" "))
+        print(result)
+    stderr = capsys.readouterr().err
+    assert 'argument dst: DatastoreDstPath must be formatted "/({PROJECT})/{NAMESPACE}(/{KIND})"' in stderr
 
 
 def test_copy_command_with_clear_dst():
@@ -161,6 +218,38 @@ def test_rename_command_with_clear_dst():
         ' --temp_location "gs://temp"',
         'python -m dsflow.dsdelete'
         ' "//srcnamespace/srckind"'
+        ' --project "proj"'
+        ' --runner "DataflowRunner"'
+        ' --setup_file "' + setup_path + '"'
+        ' --staging_location "gs://staging"'
+        ' --temp_location "gs://temp"'
+    ]
+
+
+def test_rename_command_with_multi_kinds():
+    setup_path = path.join(os.getcwd(), "dsflow", "setup.py")
+
+    parsed = cmd.parse(
+        "rename -P proj -T gs://temp -S gs://staging"
+        " //srcnamespace/srckind1,srckind2 //dstnamespace --clear-dst".split(" "))
+    assert parsed == [
+        'python -m dsflow.dsdelete'
+        ' "//dstnamespace"'
+        ' --project "proj"'
+        ' --runner "DataflowRunner"'
+        ' --setup_file "' + setup_path + '"'
+        ' --staging_location "gs://staging"'
+        ' --temp_location "gs://temp"',
+        'python -m dsflow.dscopy'
+        ' "//srcnamespace/srckind1,srckind2"'
+        ' "//dstnamespace"'
+        ' --project "proj"'
+        ' --runner "DataflowRunner"'
+        ' --setup_file "' + setup_path + '"'
+        ' --staging_location "gs://staging"'
+        ' --temp_location "gs://temp"',
+        'python -m dsflow.dsdelete'
+        ' "//srcnamespace/srckind1,srckind2"'
         ' --project "proj"'
         ' --runner "DataflowRunner"'
         ' --setup_file "' + setup_path + '"'

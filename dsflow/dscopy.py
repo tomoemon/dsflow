@@ -3,10 +3,10 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import apache_beam as beam
 from apache_beam.options.pipeline_options import GoogleCloudOptions
-from apache_beam.io.gcp.datastore.v1.datastoreio import ReadFromDatastore, WriteToDatastore
+from apache_beam.io.gcp.datastore.v1.datastoreio import WriteToDatastore
 import logging
-from dsflow.datastore.query import Query, _pb_from_query
-from dsflow.datastorepath import DatastorePath
+from dsflow.datastorepath import DatastoreSrcPath, DatastoreDstPath
+from dsflow.beamutil import create_multi_datasource_reader
 
 
 class ChangeKind(beam.DoFn):
@@ -42,8 +42,8 @@ class ChangeNamespace(beam.DoFn):
 class CopyOptions(GoogleCloudOptions):
     @classmethod
     def _add_argparse_args(cls, parser):
-        parser.add_argument('src', type=DatastorePath.parse)
-        parser.add_argument('dst', type=DatastorePath.parse)
+        parser.add_argument('src', type=DatastoreSrcPath.parse)
+        parser.add_argument('dst', type=DatastoreDstPath.parse)
 
 
 def run():
@@ -55,30 +55,24 @@ def run():
 
     args = sys.argv[1:]
     options = CopyOptions(args)
-    query = Query(kind=options.src.kind)
-    query_pb = _pb_from_query(query)
 
     if not options.src.project:
         options.src.project = options.project
-    if options.src.namespace == "default":
-        options.src.namespace = ""
     if not options.dst.project:
         options.dst.project = options.project
-    if options.dst.namespace == "default":
-        options.dst.namespace = ""
 
-    if options.dst.kind:
-        changer = ChangeKind(options.dst.project, options.dst.namespace, options.dst.kind)
+    if options.dst.kinds:
+        changer = ChangeKind(options.dst.project, options.dst.namespace, options.dst.kinds[0])
     else:
         changer = ChangeNamespace(options.dst.project, options.dst.namespace)
 
-    # namespace を指定しない(==None)と [default] namespace が使われる
     p = beam.Pipeline(options=options)
-    p | 'ReadFromDatastore' >> ReadFromDatastore(project=options.src.project,
-                                                 query=query_pb,
-                                                 namespace=options.src.namespace) \
-        | 'ChangeKey' >> beam.ParDo(changer) \
-        | 'WriteToDatastore' >> WriteToDatastore(options.dst.project)
+    sources = create_multi_datasource_reader(
+        p, options.src.project, options.src.namespace, options.src.kinds)
+
+    sources | beam.Flatten() \
+            | 'ChangeKey' >> beam.ParDo(changer) \
+            | 'WriteToDatastore' >> WriteToDatastore(options.dst.project)
     p.run().wait_until_finish()
 
 

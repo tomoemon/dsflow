@@ -3,16 +3,16 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import apache_beam as beam
 from apache_beam.options.pipeline_options import GoogleCloudOptions
-from apache_beam.io.gcp.datastore.v1.datastoreio import ReadFromDatastore, DeleteFromDatastore
+from apache_beam.io.gcp.datastore.v1.datastoreio import DeleteFromDatastore
 import logging
-from dsflow.datastore.query import Query, _pb_from_query
-from dsflow.datastorepath import DatastorePath
+from dsflow.datastorepath import DatastoreSrcPath
+from dsflow.beamutil import create_multi_datasource_reader
 
 
 class DeleteOptions(GoogleCloudOptions):
     @classmethod
     def _add_argparse_args(cls, parser):
-        parser.add_argument('src', type=DatastorePath.parse)
+        parser.add_argument('src', type=DatastoreSrcPath.parse)
 
 
 class EntityToKey(beam.DoFn):
@@ -29,22 +29,17 @@ def run():
 
     args = sys.argv[1:]
     options = DeleteOptions(args)
-    query = Query(kind=options.src.kind)
-    query.keys_only()
-    query_pb = _pb_from_query(query)
 
     if not options.src.project:
         options.src.project = options.project
-    if options.src.namespace == "default":
-        options.src.namespace = ""
 
-    # namespace を指定しない(==None)と [default] namespace が使われる
     p = beam.Pipeline(options=options)
-    p | 'ReadFromDatastore' >> ReadFromDatastore(project=options.src.project,
-                                                 query=query_pb,
-                                                 namespace=options.src.namespace) \
-        | 'EntityToKey' >> beam.ParDo(EntityToKey()) \
-        | 'DeleteFromDatastore' >> DeleteFromDatastore(options.src.project)
+    sources = create_multi_datasource_reader(
+        p, options.src.project, options.src.namespace, options.src.kinds, keys_only=True)
+
+    sources | beam.Flatten() \
+            | 'EntityToKey' >> beam.ParDo(EntityToKey()) \
+            | 'DeleteFromDatastore' >> DeleteFromDatastore(options.src.project)
     p.run().wait_until_finish()
 
 
