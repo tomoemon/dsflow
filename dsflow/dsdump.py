@@ -84,7 +84,7 @@ def run():
 
     sources | beam.Flatten() \
             | 'Format' >> beam.ParDo(formatter) \
-            | 'WriteToText' >> WriteToText(options.dst.path)
+            | 'WriteToText' >> WriteToText(options.dst)
     p.run().wait_until_finish()
 
 
