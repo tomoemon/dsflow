@@ -29,5 +29,5 @@ setuptools.setup(
     tests_require=["pytest"],
     python_requires=">=2.7,<3",
     packages=setuptools.find_packages(),
-    scripts=['bin/dsflow'],
+    scripts=['bin/dsflow', 'bin/dsflowl'],
 )
