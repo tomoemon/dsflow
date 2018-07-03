@@ -10,7 +10,7 @@ pytest_runner = ['pytest-runner'] if needs_pytest else []
 
 setuptools.setup(
     name='dsflow',
-    version='0.2.0',
+    version='0.2.1',
     author="tomoemon",
     install_requires=[
         "google-api-core",

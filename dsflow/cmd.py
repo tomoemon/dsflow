@@ -84,46 +84,49 @@ def command_rename(args, parsers):
     return command_copy(args, parsers) + command_delete(args, parsers)
 
 
-def add_dataflow_arguments(parser):
+def add_dataflow_arguments(parser, is_direct_runner):
     parser.add_argument('-P', '--project', action=EnvDefault, envvar='DS_PROJECT')
-    parser.add_argument('-T', '--temp-location', action=EnvDefault, envvar='DS_TEMP_LOCATION')
-    parser.add_argument('-S', '--staging-location', action=EnvDefault, envvar='DS_STAGING_LOCATION')
-    parser.add_argument('-R', '--runner', action=EnvDefault,
-                        choices=["DataflowRunner", "DirectRunner"], envvar='DS_RUNNER', default="DataflowRunner")
+
+    if is_direct_runner:
+        parser.set_defaults(runner='DirectRunner')
+    else:
+        parser.add_argument('-T', '--temp-location', action=EnvDefault, envvar='DS_TEMP_LOCATION')
+        parser.add_argument('-S', '--staging-location', action=EnvDefault, envvar='DS_STAGING_LOCATION')
+        parser.set_defaults(runner='DataflowRunner')
 
     # "setup.py" という名前のファイルじゃないとエラーになる
     runtime_setup_path = path.join(path.dirname(path.abspath(__file__)), "setup.py")
     parser.set_defaults(setup_file=runtime_setup_path)
 
 
-def parse(args):
+def parse(args, is_direct_runner):
     parser = argparse.ArgumentParser(description='dsflow supports data maintainance on cloud datastore')
     subparsers = parser.add_subparsers()
 
     # dump command parser
     parser_dump = subparsers.add_parser('dump', help='dump namespace or kind')
     dsdump.DumpOptions._add_argparse_args(parser_dump)
-    add_dataflow_arguments(parser_dump)
+    add_dataflow_arguments(parser_dump, is_direct_runner)
     parser_dump.set_defaults(_formatter=command_dump)
 
     # copy command parser
     parser_copy = subparsers.add_parser('copy', help='copy namespace or kind')
     dscopy.CopyOptions._add_argparse_args(parser_copy)
     parser_copy.add_argument('--clear-dst', action="store_true", default=False)
-    add_dataflow_arguments(parser_copy)
+    add_dataflow_arguments(parser_copy, is_direct_runner)
     parser_copy.set_defaults(_formatter=command_copy)
 
     # rename command parser
     parser_rename = subparsers.add_parser('rename', help='rename namespace or kind')
     dscopy.CopyOptions._add_argparse_args(parser_rename)
     parser_rename.add_argument('--clear-dst', action="store_true", default=False)
-    add_dataflow_arguments(parser_rename)
+    add_dataflow_arguments(parser_rename, is_direct_runner)
     parser_rename.set_defaults(_formatter=command_rename)
 
     # delete command parser
     parser_delete = subparsers.add_parser('delete', help='delete namespace or kind')
     dsdelete.DeleteOptions._add_argparse_args(parser_delete)
-    add_dataflow_arguments(parser_delete)
+    add_dataflow_arguments(parser_delete, is_direct_runner)
     parser_delete.set_defaults(_formatter=command_delete)
 
     args = parser.parse_args(args)
@@ -141,7 +144,15 @@ def parse(args):
 def run(args):
     # remove command name itself
     args = args[1:]
-    commands = parse(args)
+    commands = parse(args, is_direct_runner=False)
+    for cmd in commands:
+        os.system(cmd)
+
+
+def run_local(args):
+    # remove command name itself
+    args = args[1:]
+    commands = parse(args, is_direct_runner=True)
     for cmd in commands:
         os.system(cmd)
 
