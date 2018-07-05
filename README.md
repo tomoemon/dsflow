@@ -1,6 +1,6 @@
 # dsflowとは
 
-Datastore を namespace/kind 単位で一括コピー、削除、リネームを行うためのコマンドラインツールです。
+[Cloud Datastore](https://cloud.google.com/datastore/?hl=ja) を namespace/kind 単位で一括コピー、削除、リネームを行うためのコマンドラインツールです。
 Apache Beam フレームワーク上で構築されており、ローカルマシンで動かすことも、Google Cloud Dataflow のジョブとして実行することもできます。
 
 # インストール手順
