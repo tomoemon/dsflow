@@ -59,7 +59,9 @@ Datastore は大量のデータ一括操作をサポートしていないため�
   - `{PROJECT}` を省略して `//{NAMESPACE}/{KIND}` と表現した場合は `-P` で指定したプロジェクトが適用されます
   - `//{NAMESPACE}` のように KIND を省略して名前空間全体を指定することも可能です（名前空間ごとのコピーや削除を行う場合）
   - デフォルトネームスペースは `@default` と指定します
-  - `src` と `dst` で異なる `{PROJECT}` を指定することも可能です。その場合は各プロジェクトの IAM 設定で、実行ユーザのアカウント (`dsflowl` の場合)、または Dataflow ジョブを実行する Service Accout  (`dsflow` の場合) に適切な権限を割り当ててください
+  - `src` と `dst` で異なる `{PROJECT}` を指定することも可能です。その場合は各プロジェクトの IAM 設定で、実行ユーザのアカウント (`dsflowl` の場合)、または Dataflow ジョブを実行する Service Accout  (`dsflow` の場合) に適切な権限を割り当ててください（[参考リンク](https://cloud.google.com/dataflow/security-and-permissions#google-cloud-platform-account)）
+
+   
 
 ## dsflow コマンド用オプション
 
