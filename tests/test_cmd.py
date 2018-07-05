@@ -159,7 +159,7 @@ def test_copy_command_with_clear_dst():
 
     parsed = cmd.parse(
         "copy -P proj -T gs://temp -S gs://staging"
-        " //srcnamespace/srckind //dstnamespace/dstkind --clear-dst".split(" "),
+        " //srcnamespace/srckind //dstnamespace/dstkind --clear_dst".split(" "),
         is_direct_runner=False)
     assert parsed == [
         'python -m dsflow.dsdelete'
@@ -226,7 +226,7 @@ def test_rename_command_with_clear_dst():
 
     parsed = cmd.parse(
         "rename -P proj -T gs://temp -S gs://staging"
-        " //srcnamespace/srckind //dstnamespace/dstkind --clear-dst".split(" "), is_direct_runner=False)
+        " //srcnamespace/srckind //dstnamespace/dstkind --clear_dst".split(" "), is_direct_runner=False)
     assert parsed == [
         'python -m dsflow.dsdelete'
         ' "//dstnamespace/dstkind"'
@@ -258,7 +258,7 @@ def test_rename_command_with_multi_kinds():
 
     parsed = cmd.parse(
         "rename -P proj -T gs://temp -S gs://staging"
-        " //srcnamespace/srckind1,srckind2 //dstnamespace --clear-dst".split(" "), is_direct_runner=False)
+        " //srcnamespace/srckind1,srckind2 //dstnamespace --clear_dst".split(" "), is_direct_runner=False)
     assert parsed == [
         'python -m dsflow.dsdelete'
         ' "//dstnamespace"'

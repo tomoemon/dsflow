@@ -56,7 +56,7 @@ class DumpOptions(GoogleCloudOptions):
         parser.add_argument('src', type=DatastoreSrcPath.parse)
         parser.add_argument('dst')
         parser.add_argument('--format', choices=["json", "raw"], default="json")
-        parser.add_argument('--keys-only', action="store_true", default=False)
+        parser.add_argument('--keys_only', action="store_true", default=False)
 
 
 def run():

@@ -1,129 +1,133 @@
 # dsflowとは
 
-Datastore の一括コピー、削除、リネームを行うためのコマンドラインユーティリティです。
-Dataflow 上で各種処理を実行することで、大量のデータ操作に必要なスケールアウトやジョブ管理が簡単になります。
+Datastore を namespace/kind 単位で一括コピー、削除、リネームを行うためのコマンドラインツールです。
+Apache Beam フレームワーク上で構築されており、ローカルマシンで動かすことも、Google Cloud Dataflow のジョブとして実行することもできます。
 
-## 注意
+# インストール手順
 
-### 処理時間
+下記、Google Cloud Shell での操作を前提としています。
+Python 2.7, Google Cloud SDK がインストールされている環境であればどのマシンでも実行することができますが、Cloud Shell であれば環境依存等がほぼない状態で実行できます。
 
-Dataflow ジョブを実行すると、内部で GCE インスタンスが立ち上がり、最初にインスタンスの初期化等が行われます。そのため、対象となるデータ量が少ない場合でもコマンド実行完了まで3分～5分程度は要します。
+1. 処理を行いたい Datastore と同じプロジェクト内で Google Cloud Shell を開きます
+1. 下記のコマンドを実行します
+```sh
+sudo pip install git+https://github.com/tomoemon/dsflow.git
+```
 
-### 費用
+※ Google Cloud Shell ではなく、個人PC 等で実行する場合に事前に必要なもの
+- python 2.7.x
+- Google Cloud SDK (`gcloud` command)
+- application default credential (`gcloud auth application-default login`)
 
-Datastore は1エンティティ単位の読み書きで費用が発生します。大量のデータ操作を行う場合は注意してください。
+
+## インストールされるコマンド
+
+PATH が通った場所に `dsflow`, `dsflowl` という2つのコマンドがインストールされます。下記2つのコマンドは実行環境が異なるだけで、実行できる内容は変わりません。
+
+- `dsflow`
+  - Datastore に対する処理を Dataflow ジョブとして実行します。Dataflow ジョブが立ち上げた GCE インスタンスと Datastore 間で通信を行います。
+  - ※作業領域として GCS を使用するため、実行時に一時領域のパス等を指定する必要があります。
+- `dsflowl`
+  - Datastore に対する処理を「このコマンドを実行した」ローカルマシン上で実行します。ローカルマシンと Datastore 間で通信を行います。
+
+
+# 注意
+
+## 費用
+
+Datastore は1エンティティ単位の読み書きで費用が発生します。大量のデータ操作を行う場合はあらかじめ対象のデータ量に注意してください。
 
 https://cloud.google.com/datastore/pricing?hl=ja
 
-デフォルトの動作である Dataflow ジョブを使う方法（`runner=DataflowRunner`）ではなく、ローカルマシンをバックエンドとして実行（`runner=DirectRunner`）することもできますが、ローカルで実行する場合はDatastoreの読み書きの費用に加えて、ネットワークトラフィックに関する費用も発生します。
+## 処理時間
 
-https://cloud.google.com/compute/pricing?hl=ja#internet_egress
+Dataflow ジョブを実行すると、内部で GCE インスタンスが立ち上がり、インスタンスの初期化等が行われます。そのため、対象となるデータ量が少ない場合でもコマンド実行完了まで3分～5分程度は要します。
+__件数が少ない（数万件程度まで）場合は Google Cloud Shell から dsflowl を実行することをお勧めします。__
 
-### アトミック性
+## アトミック性
 
 Datastore は大量のデータ一括操作をサポートしていないため、このツールのいずれのコマンドもアトミックに処理を行いません。例えばcopyコマンドを実行中に何らかのエラーが発生したら、一部の Entity や Kind のコピーだけが完了している中途半端な状況が発生する可能性があります。
 
-# 実行前に必要なもの
-
-- Python 2.7.x
-- Google Cloud SDK (`gcloud command`)
-- Application default credential (`gcloud auth application-default login`)
-
-# インストール
-
-```sh
-pip install git+https://github.com/tomoemon/dsflow.git
-```
-
 # 使い方
 
-## 共通パラメータ
-- `-P --job-project (環境変数 DS_JOB_PROJECT でも指定可能)`
-  - 実行プロジェクトID。このプロジェクト内で Dataflow ジョブが立ち上がります
-- `-T --temp-location  (環境変数 DS_TEMP_LOCATION でも指定可能)`
-  - GCS のパス (`gs://{BUCKET}/{TEMP_PREFIX}`)。Dataflow のジョブ実行中の一時ファイル置き場
-- `-S --staging-location  (環境変数 DS_STAGING_LOCATION でも指定可能)`
-  - GCS のパス (`gs://{BUCKET}/{STAGING_PREFIX}`)。Dataflow のジョブ実行時に使用するパッケージのアップロード先
+## 共通オプション
+
+- `-P --job_project (環境変数 DS_JOB_PROJECT でも指定可能)`
+  - 実行プロジェクトID。`dsflow` コマンドの場合はこのプロジェクト内で Dataflow ジョブが立ち上がります。
 - `src` / `dst` 
   - `/{PROJECT}/{NAMESPACE}/{KIND}` で表現する Datastore のパス。
-  - `{PROJECT}` を省略して `//{NAMESPACE}/{KIND}` と表現した場合は `-P` で指定したジョブ実行プロジェクトと同様のプロジェクトが使用されます
+  - `{PROJECT}` を省略して `//{NAMESPACE}/{KIND}` と表現した場合は `-P` で指定したプロジェクトが適用されます
   - `//{NAMESPACE}` のように KIND を省略して名前空間全体を指定することも可能です（名前空間ごとのコピーや削除を行う場合）
+  - デフォルトネームスペースは `@default` と指定します
+  - `src` と `dst` で異なる `{PROJECT}` を指定することも可能です。その場合は各プロジェクトの IAM 設定で、実行ユーザのアカウント (`dsflowl` の場合)、または Dataflow ジョブを実行する Service Accout  (`dsflow` の場合) に適切な権限を割り当ててください
 
-## copyコマンド
+## dsflow コマンド用オプション
+
+- `-T --temp_location  (環境変数 DS_TEMP_LOCATION でも指定可能)`
+  - GCS のパス (`gs://{BUCKET}/{TEMP_PREFIX}`)。Dataflow のジョブ実行中の一時ファイル置き場
+- `-S --staging_location  (環境変数 DS_STAGING_LOCATION でも指定可能)`
+  - GCS のパス (`gs://{BUCKET}/{STAGING_PREFIX}`)。Dataflow のジョブ実行時に使用するパッケージのアップロード先
+
+## サブコマンド群
+
+下記サブコマンドが `dsflow`, `dsflowl` 双方で使用可能です。
+
+- copy
+- delete
+- rename
+- dump
+
+## copy
 
 ```sh
-dsflow copy \
+dsflowl copy \
 -P {PROJECT_NAME} \
--T gs://{BUCKET}/{TEMPORARY_PREFIX} \
--S gs://{BUCKET}/{STAGING_PREFIX} \
 {src_datastore_path} {dst_datastore_path}
 ```
 
-例：ジョブを実行するプロジェクトと同じプロジェクト内で、
-`default` namespace に存在する `User` kind を `default` namespace の `User2` kind にコピーする場合
+※ `dsflow` コマンドを実行する場合は `-T`, `-S` オプションの指定が必要です。
 
-```
-dsflow copy \
--P {PROJECT_NAME} \
--T gs://{BUCKET}/{TEMPORARY_PREFIX} \
--S gs://{BUCKET}/{STAGING_PREFIX} \
-//@default/User //@default/User2
-```
+- 例： `default` namespace に存在する `User` kind を `default` namespace の `User2` kind にコピーする場合
 
-例：ジョブを実行するプロジェクトと同じプロジェクト内で、
-`default` namespace に含まれるすべての kind を `staging` namespace にコピーする場合
+      dsflowl copy \
+      -P {PROJECT_NAME} \
+      //@default/User //@default/User2
 
-```
-dsflow copy \
--P {PROJECT_NAME} \
--T gs://{BUCKET}/{TEMPORARY_PREFIX} \
--S gs://{BUCKET}/{STAGING_PREFIX} \
-//@default //staging
-```
+- 例： `default` namespace に含まれるすべての kind を `staging` namespace にコピーする場合
 
-例：ジョブを実行するプロジェクトと同じプロジェクト内で、
-`default` namespace に含まれる User と Log kind を `staging` namespace にコピーする場合
+      dsflowl copy \
+      -P {PROJECT_NAME} \
+      //@default //staging
 
-```
-dsflow copy \
--P {PROJECT_NAME} \
--T gs://{BUCKET}/{TEMPORARY_PREFIX} \
--S gs://{BUCKET}/{STAGING_PREFIX} \
-//@default/User,Log //staging
-```
+- 例： `default` namespace に含まれる User と Log kind を `staging` namespace にコピーする場合
 
-例：ジョブを実行するプロジェクトと同じプロジェクト内で、
-`default` namespace に含まれるすべての kind を `staging` namespace にコピーする場合
+      dsflowl copy \
+      -P {PROJECT_NAME} \
+      //@default/User,Log //staging
+
+- 例： `default` namespace に含まれるすべての kind を `staging` namespace にコピーする場合
 ※すでに存在する `staging` namespace を先にクリアしたい場合
 
-```
-dsflow copy \
--P {PROJECT_NAME} \
--T gs://{BUCKET}/{TEMPORARY_PREFIX} \
--S gs://{BUCKET}/{STAGING_PREFIX} \
-//@default //staging
---clear-dst
-```
+      dsflowl copy \
+      -P {PROJECT_NAME} \
+      //@default //staging
+      --clear_dst
 
-## deleteコマンド
+## delete
 
 ```sh
-dsflow delete \
+dsflowl delete \
 -P {PROJECT_NAME} \
--T gs://{BUCKET}/{TEMPORARY_PREFIX} \
--S gs://{BUCKET}/{STAGING_PREFIX} \
 {src_datastore_path}
 ```
 
 `{src_datastore_path}` の指定方法は copy コマンドと同様。
 
-## renameコマンド
+## rename
 
 ```
-dsflow rename \
+dsflowl rename \
 -P {PROJECT_NAME} \
--T gs://{BUCKET}/{TEMPORARY_PREFIX} \
--S gs://{BUCKET}/{STAGING_PREFIX} \
 {src_datastore_path} {dst_datastore_path}
 ```
 
@@ -134,10 +138,8 @@ dsflow rename \
 ## dump コマンド
 
 ```
-dsflow rename \
+dsflowl rename \
 -P {PROJECT_NAME} \
--T gs://{BUCKET}/{TEMPORARY_PREFIX} \
--S gs://{BUCKET}/{STAGING_PREFIX} \
 {src_datastore_path} {dst_path}
 ```
 

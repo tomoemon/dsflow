@@ -48,9 +48,10 @@ def format_command_arg(positional_list, optional_dict):
 
     options = []
     for k, v in sorted(optional_dict.items()):
+        if not v:
+            continue
         if isinstance(v, bool):
-            if v:
-                options.append("--" + k)
+            options.append("--" + k)
         else:
             options.append('--{} "{}"'.format(str(k), str(v).replace('"', '\\"')))
     return positional + " ".join(options)
@@ -90,8 +91,19 @@ def add_dataflow_arguments(parser, is_direct_runner):
     if is_direct_runner:
         parser.set_defaults(runner='DirectRunner')
     else:
-        parser.add_argument('-T', '--temp-location', action=EnvDefault, envvar='DS_TEMP_LOCATION')
-        parser.add_argument('-S', '--staging-location', action=EnvDefault, envvar='DS_STAGING_LOCATION')
+        parser.add_argument('-T', '--temp_location', action=EnvDefault, envvar='DS_TEMP_LOCATION')
+        parser.add_argument('-S', '--staging_location', action=EnvDefault, envvar='DS_STAGING_LOCATION')
+        parser.add_argument('--region',
+                            default=None,
+                            help='The Google Compute Engine region for creating '
+                            'Dataflow job.')
+        parser.add_argument('--service_account_email',
+                            default=None,
+                            help='Identity to run virtual machines as.')
+        parser.add_argument('--no_auth', dest='no_auth', type=bool, default=False)
+        parser.add_argument('--job_name',
+                            default=None,
+                            help='Name of the Cloud Dataflow job.')
         parser.set_defaults(runner='DataflowRunner')
 
     # "setup.py" という名前のファイルじゃないとエラーになる
@@ -112,14 +124,14 @@ def parse(args, is_direct_runner):
     # copy command parser
     parser_copy = subparsers.add_parser('copy', help='copy namespace or kind')
     dscopy.CopyOptions._add_argparse_args(parser_copy)
-    parser_copy.add_argument('--clear-dst', action="store_true", default=False)
+    parser_copy.add_argument('--clear_dst', action="store_true", default=False)
     add_dataflow_arguments(parser_copy, is_direct_runner)
     parser_copy.set_defaults(_formatter=command_copy)
 
     # rename command parser
     parser_rename = subparsers.add_parser('rename', help='rename namespace or kind')
     dscopy.CopyOptions._add_argparse_args(parser_rename)
-    parser_rename.add_argument('--clear-dst', action="store_true", default=False)
+    parser_rename.add_argument('--clear_dst', action="store_true", default=False)
     add_dataflow_arguments(parser_rename, is_direct_runner)
     parser_rename.set_defaults(_formatter=command_rename)
 
