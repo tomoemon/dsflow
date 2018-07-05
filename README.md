@@ -35,9 +35,9 @@ PATH が通った場所に `dsflow`, `dsflowl` という2つのコマンドが�
 
 ## 費用
 
-Datastore は1エンティティ単位の読み書きで費用が発生します。大量のデータ操作を行う場合はあらかじめ対象のデータ量に注意してください。
+Datastore は1エンティティ単位の読み書きで費用が発生します。大量のデータ操作を行う場合はあらかじめ対象のデータ量に注意してください。（[参考リンク](https://cloud.google.com/datastore/pricing?hl=ja)）
 
-https://cloud.google.com/datastore/pricing?hl=ja
+
 
 ## 処理時間
 
