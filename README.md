@@ -161,11 +161,6 @@ dsflowl rename \
 
 # Roadmap
 
-- 1.0
-  - README 整備（英語版も作る）
-  - コマンドラインヘルプ 整備
-- 1.x
-  - Property のリネーム、削除、コピー
 - 実装しない
   - Custom Template対応
     - 2018/06 時点で Custom Template は難しい（そもそも、Apache Beam の Datastore library が Custom Template のランタイムパラメータを受け取れるようになっておらず、かなり頑張ったが挙動が怪しかったので当分やらない。また、Custom Template では1テンプレートにつき、1パイプラインしか実行できないので、Rename のような copy+delete の操作を表現できない）
