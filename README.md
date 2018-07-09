@@ -81,6 +81,8 @@ Datastore は大量のデータ一括操作をサポートしていないため�
 
 ## copy
 
+特定の Namespace または Kind に含まれる Entity をコピーします。
+
 ```sh
 dsflowl copy \
 -P {PROJECT_NAME} \
@@ -117,6 +119,8 @@ dsflowl copy \
 
 ## delete
 
+特定の Namespace または Kind に含まれる Entity を削除します。
+
 ```sh
 dsflowl delete \
 -P {PROJECT_NAME} \
@@ -126,6 +130,8 @@ dsflowl delete \
 `{src_datastore_path}` の指定方法は copy コマンドと同様。
 
 ## rename
+
+特定の Namespace または Kind に含まれる Entity のキーを変更します。
 
 ```
 dsflowl rename \
@@ -138,6 +144,8 @@ dsflowl rename \
 注意：リネーム操作の実体は copy＋deleteです。アトミックにリネームをするわけではないので、途中でエラーが発生した場合はコピーだけされている可能性があります。
 
 ## dump
+
+特定の Namespace または Kind に含まれる Entity をテキスト形式で出力します（デバッグ用）。
 
 ```
 dsflowl rename \
