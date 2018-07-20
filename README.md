@@ -11,7 +11,8 @@ Python 2.7, Google Cloud SDK がインストールされている環境であれ
 1. 処理を行いたい Datastore と同じプロジェクト内で Google Cloud Shell を開きます
 1. 下記のコマンドを実行します
 ```sh
-sudo pip install git+https://github.com/tomoemon/dsflow.git
+pip install --user git+https://github.com/tomoemon/dsflow.git
+export PATH="~/.local/bin:$PATH"
 ```
 
 ※ Google Cloud Shell ではなく、個人PC 等で実行する場合に事前に必要なもの
@@ -161,11 +162,6 @@ dsflowl rename \
 
 # Roadmap
 
-- 1.0
-  - README 整備（英語版も作る）
-  - コマンドラインヘルプ 整備
-- 1.x
-  - Property のリネーム、削除、コピー
 - 実装しない
   - Custom Template対応
     - 2018/06 時点で Custom Template は難しい（そもそも、Apache Beam の Datastore library が Custom Template のランタイムパラメータを受け取れるようになっておらず、かなり頑張ったが挙動が怪しかったので当分やらない。また、Custom Template では1テンプレートにつき、1パイプラインしか実行できないので、Rename のような copy+delete の操作を表現できない）
