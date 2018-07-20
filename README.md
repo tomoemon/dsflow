@@ -11,7 +11,8 @@ Python 2.7, Google Cloud SDK がインストールされている環境であれ
 1. 処理を行いたい Datastore と同じプロジェクト内で Google Cloud Shell を開きます
 1. 下記のコマンドを実行します
 ```sh
-sudo pip install git+https://github.com/tomoemon/dsflow.git
+pip install --user git+https://github.com/tomoemon/dsflow.git
+export PATH="~/.local/bin:$PATH"
 ```
 
 ※ Google Cloud Shell ではなく、個人PC 等で実行する場合に事前に必要なもの
