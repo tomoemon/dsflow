@@ -17,6 +17,9 @@ class DeleteOptions(GoogleCloudOptions):
 
 class EntityToKey(beam.DoFn):
     def process(self, element):
+        e = element
+        if e.key.path[-1].kind.startswith('__'):
+            return []
         return[element.key]
 
 

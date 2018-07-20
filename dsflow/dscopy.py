@@ -32,7 +32,7 @@ class ChangeNamespace(beam.DoFn):
 
     def process(self, element):
         e = element
-        if e.key.path[0].kind.startswith('__'):
+        if e.key.path[-1].kind.startswith('__'):
             return []
         e.key.partition_id.project_id = self.to_project
         e.key.partition_id.namespace_id = self.to_namespace
