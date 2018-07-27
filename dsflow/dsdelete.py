@@ -20,7 +20,7 @@ class EntityToKey(beam.DoFn):
         e = element
         if e.key.path[-1].kind.startswith('__'):
             return []
-        return[element.key]
+        return[e.key]
 
 
 def run():

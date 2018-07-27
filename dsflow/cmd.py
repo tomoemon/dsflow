@@ -157,16 +157,21 @@ def run(args):
     # remove command name itself
     args = args[1:]
     commands = parse(args, is_direct_runner=False)
-    for cmd in commands:
-        os.system(cmd)
+    execute_commands(commands)
 
 
 def run_local(args):
     # remove command name itself
     args = args[1:]
     commands = parse(args, is_direct_runner=True)
+    execute_commands(commands)
+
+
+def execute_commands(commands):
     for cmd in commands:
-        os.system(cmd)
+        ret = os.system(cmd)
+        if ret != 0:
+            return
 
 
 if __name__ == '__main__':
