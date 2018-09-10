@@ -144,7 +144,7 @@ dsflowl rename \
 
 ## dump
 
-特定の Namespace または Kind に含まれる Entity を json 形式で出力します。json で出力した内容は BigQuery に取り込み可能です。（取り込み時にスキーマの自動検出を ON にすれば簡単にテーブルを作成できます）
+特定の Namespace または Kind に含まれる Entity を jsonl 形式(1行ごとにjsonとして完結している形式)で出力します。jsonl 形式で出力したファイルはそのまま BigQuery に取り込み可能で、取り込み時にスキーマの自動検出を ON にすれば簡単にテーブルを作成できます。
 
 ```
 dsflowl dump \
