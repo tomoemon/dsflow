@@ -1,12 +1,12 @@
 # dsflowとは
 
-[Cloud Datastore](https://cloud.google.com/datastore/?hl=ja) を namespace/kind 単位で一括コピー、削除、リネームを行うためのコマンドラインツールです。
-Apache Beam フレームワーク上で構築されており、ローカルマシンで動かすことも、Google Cloud Dataflow のジョブとして実行することもできます。
+[Cloud Datastore](https://cloud.google.com/datastore/?hl=ja) を Namespace や Kind 単位で一括コピー、削除、リネーム、Entity 単位の任意のデータ変換を行うためのコマンドラインツールです。
+Apache Beam フレームワーク上で構築されており、ローカルマシンで動かしたり、Google Cloud Dataflow のジョブとして実行することもできます。
 
 # インストール手順
 
-下記、Google Cloud Shell での操作を前提としています。
-Python 2.7, Google Cloud SDK がインストールされている環境であればどのマシンでも実行することができますが、Cloud Shell であれば環境依存等がほぼない状態で実行できます。
+下記、[Google Cloud Shell](https://cloud.google.com/shell/docs/) での操作を前提としています。
+Python 2.7, Google Cloud SDK がインストールされている環境であればどのマシンでも実行することができますが、Cloud Shell であれば基本的に環境依存を気にする必要がなく便利です。
 
 1. 処理を行いたい Datastore と同じプロジェクト内で Google Cloud Shell を開きます
 1. 下記のコマンドを実行します
@@ -23,7 +23,7 @@ export PATH="~/.local/bin:$PATH"
 
 ## インストールされるコマンド
 
-PATH が通った場所に `dsflow`, `dsflowl` という2つのコマンドがインストールされます。下記2つのコマンドは実行環境が異なるだけで、実行できる内容は変わりません。
+PATH が通った場所に `dsflow`, `dsflowl` という2つのコマンドがインストールされます。下記2つのコマンドは実行環境が異なるだけで、実行できる内容は同じです。
 
 - `dsflow`
   - Datastore に対する処理を Dataflow ジョブとして実行します。Dataflow ジョブが立ち上げた GCE インスタンスと Datastore 間で通信を行います。
@@ -36,14 +36,12 @@ PATH が通った場所に `dsflow`, `dsflowl` という2つのコマンドが�
 
 ## 費用
 
-Datastore は1エンティティ単位の読み書きで費用が発生します。大量のデータ操作を行う場合はあらかじめ対象のデータ量に注意してください。（[参考リンク](https://cloud.google.com/datastore/pricing?hl=ja)）
-
-
+Datastore は 1 Entity 単位の読み書きに対して費用が発生します。大量のデータ操作を行う場合はあらかじめ対象となるデータ量に注意してください。（[参考リンク](https://cloud.google.com/datastore/pricing?hl=ja)）
 
 ## 処理時間
 
 Dataflow ジョブを実行すると、内部で GCE インスタンスが立ち上がり、インスタンスの初期化等が行われます。そのため、対象となるデータ量が少ない場合でもコマンド実行完了まで3分～5分程度は要します。
-__件数が少ない（数万件程度まで）場合は Google Cloud Shell から dsflowl を実行することをお勧めします。__
+__件数が少ない（おおむね数千件程度まで）場合は Google Cloud Shell から dsflowl を実行することをお勧めします。__
 
 ## アトミック性
 
@@ -54,13 +52,13 @@ Datastore は大量のデータ一括操作をサポートしていないため�
 ## 共通オプション
 
 - `-P --job_project (環境変数 DS_JOB_PROJECT でも指定可能)`
-  - 実行プロジェクトID。`dsflow` コマンドの場合はこのプロジェクト内で Dataflow ジョブが立ち上がります。
+  - `dsflow` コマンドの場合はこのプロジェクト内で Dataflow ジョブが立ち上がります。 また、下記 `src` / `dst` 指定の際のデフォルトプロジェクトとして扱われます。
 - `src` / `dst` 
-  - `/{PROJECT}/{NAMESPACE}/{KIND}` で表現する Datastore のパス。
-  - `{PROJECT}` を省略して `//{NAMESPACE}/{KIND}` と表現した場合は `-P` で指定したプロジェクトが適用されます
+  - `/{PROJECT_ID}/{NAMESPACE}/{KIND}` で表現する Datastore のパス。
+  - `{PROJECT_ID}` を省略して `//{NAMESPACE}/{KIND}` と表現した場合は `-P` で指定したプロジェクトが適用されます
   - `//{NAMESPACE}` のように KIND を省略して名前空間全体を指定することも可能です（名前空間ごとのコピーや削除を行う場合）
   - デフォルトネームスペースは `@default` と指定します
-  - `src` と `dst` で異なる `{PROJECT}` を指定することも可能です。その場合は各プロジェクトの IAM 設定で、実行ユーザのアカウント (`dsflowl` の場合)、または Dataflow ジョブを実行する Service Accout  (`dsflow` の場合) に適切な権限を割り当ててください（[参考リンク](https://cloud.google.com/dataflow/security-and-permissions#google-cloud-platform-account)）
+  - `src` と `dst` で異なる `{PROJECT_ID}` を指定することも可能です。その場合は各プロジェクトの IAM 設定で、実行ユーザのアカウント (`dsflowl` の場合)、または Dataflow ジョブを実行する Service Accout  (`dsflow` の場合) に適切な権限を割り当ててください（[参考リンク](https://cloud.google.com/dataflow/security-and-permissions#google-cloud-platform-account)）
 
    
 
@@ -92,26 +90,26 @@ dsflowl copy \
 
 ※ `dsflow` コマンドを実行する場合は `-T`, `-S` オプションの指定が必要です。
 
-- 例： `default` namespace に存在する `User` kind を `default` namespace の `User2` kind にコピーする場合
+- 例： `default` Namespace に存在する `User` Kind を `default` Namespace の `User2` Kind にコピーする場合
 
       dsflowl copy \
       -P {PROJECT_NAME} \
       //@default/User //@default/User2
 
-- 例： `default` namespace に含まれるすべての kind を `staging` namespace にコピーする場合
+- 例： `default` Namespace に含まれるすべての Kind を `staging` Namespace にコピーする場合
 
       dsflowl copy \
       -P {PROJECT_NAME} \
       //@default //staging
 
-- 例： `default` namespace に含まれる User と Log kind を `staging` namespace にコピーする場合
+- 例： `default` Namespace に含まれる User と Log Kind を `staging` Namespace にコピーする場合
 
       dsflowl copy \
       -P {PROJECT_NAME} \
       //@default/User,Log //staging
 
-- 例： `default` namespace に含まれるすべての kind を `staging` namespace にコピーする場合
-※すでに存在する `staging` namespace を先にクリアしたい場合
+- 例： `default` Namespace に含まれるすべての Kind を `staging` Namespace にコピーする場合
+※すでに存在する `staging` Namespace を先にクリアしたい場合
 
       dsflowl copy \
       -P {PROJECT_NAME} \
@@ -146,19 +144,19 @@ dsflowl rename \
 
 ## dump
 
-特定の Namespace または Kind に含まれる Entity をテキスト形式で出力します（デバッグ用）。
+特定の Namespace または Kind に含まれる Entity を json 形式で出力します。json で出力した内容は BigQuery に取り込み可能です。（取り込み時にスキーマの自動検出を ON にすれば簡単にテーブルを作成できます）
 
 ```
-dsflowl rename \
--P {PROJECT_NAME} \
+dsflowl dump \
+-P {PROJECT_NAME} [--mapper MAPPER_CODE] \
 {src_datastore_path} {dst_path}
 ```
 
 `{src_datastore_path}` の指定方法は copy コマンドと同様。`{dst_path}` は GCS パス (`gs://*`) またはローカルのファイルシステムのパス。
 
-独自の方法でシリアライズした文字列を jsonl 形式（1行単位の json）で出力します。
+シリアライズした文字列を jsonl 形式（1行単位の json）で出力します。
 - Timestamp型は isoformat の文字列に変換します
-- キー型は `__key__` というプロパティ下に値をセットします
+- キー型は `__key__` というプロパティに値をセットします
 
 # Roadmap
 

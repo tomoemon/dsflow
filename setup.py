@@ -24,6 +24,7 @@ setuptools.setup(
         # なぜか install_requires に記載した下にあるものからインストールされる
         "oauth2client>=2.0.1,<4",
         "httplib2<0.10,>=0.9.1",
+        "funcsigs",
     ],
     setup_requires=[] + pytest_runner,
     tests_require=["pytest"],

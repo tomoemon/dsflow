@@ -5,8 +5,9 @@ import apache_beam as beam
 from apache_beam.io import WriteToText
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 import logging
+from dsflow.datastore.helpers import entity_from_protobuf
 from dsflow.datastorepath import DatastoreSrcPath
-from dsflow.beamutil import create_multi_datasource_reader
+from dsflow.beamutil import create_multi_datasource_reader, OptionalProcess
 
 
 class RawFormat(beam.DoFn):
@@ -43,7 +44,6 @@ class JsonFormat(beam.DoFn):
 
     def process(self, element):
         import json
-        from datastore.helpers import entity_from_protobuf
 
         entity = entity_from_protobuf(element)
         entity["__key__"] = self.format_key(entity.key)
@@ -57,6 +57,7 @@ class DumpOptions(GoogleCloudOptions):
         parser.add_argument('dst')
         parser.add_argument('--format', choices=["json", "raw"], default="json")
         parser.add_argument('--keys_only', action="store_true", default=False)
+        parser.add_argument('--mapper', type=str, default="")
 
 
 def run():
@@ -83,6 +84,7 @@ def run():
         p, options.src.project, options.src.namespace, options.src.kinds, options.keys_only)
 
     sources | beam.Flatten() \
+            | 'OptionalMapper' >> beam.ParDo(OptionalProcess(options.mapper)) \
             | 'Format' >> beam.ParDo(formatter) \
             | 'WriteToText' >> WriteToText(options.dst)
     p.run().wait_until_finish()

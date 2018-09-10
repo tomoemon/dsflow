@@ -282,7 +282,7 @@ class Key(object):
         :rtype: :class:`.entity_pb2.Key`
         :returns: The protobuf representing the key.
         """
-        key = _entity_pb2.Key()
+        key = entity_pb2.Key()
         key.partition_id.project_id = self.project
 
         if self.namespace:

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
+import logging
 import apache_beam as beam
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.io.gcp.datastore.v1.datastoreio import WriteToDatastore
-import logging
 from dsflow.datastorepath import DatastoreSrcPath, DatastoreDstPath
-from dsflow.beamutil import create_multi_datasource_reader
+from dsflow.beamutil import create_multi_datasource_reader, OptionalProcess
 
 
 class ChangeKind(beam.DoFn):
@@ -44,6 +44,7 @@ class CopyOptions(GoogleCloudOptions):
     def _add_argparse_args(cls, parser):
         parser.add_argument('src', type=DatastoreSrcPath.parse)
         parser.add_argument('dst', type=DatastoreDstPath.parse)
+        parser.add_argument('--mapper', type=str, default="")
 
 
 def run():
@@ -72,6 +73,7 @@ def run():
 
     sources | beam.Flatten() \
             | 'ChangeKey' >> beam.ParDo(changer) \
+            | 'OptionalMapper' >> beam.ParDo(OptionalProcess(options.mapper)) \
             | 'WriteToDatastore' >> WriteToDatastore(options.dst.project)
     p.run().wait_until_finish()
 
