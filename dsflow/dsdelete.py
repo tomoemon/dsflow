@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import apache_beam as beam
 from apache_beam.options.pipeline_options import GoogleCloudOptions
-from apache_beam.io.gcp.datastore.v1.datastoreio import DeleteFromDatastore
+from apache_beam.io.gcp.datastore.v1new.datastoreio import DeleteFromDatastore
 import logging
-from dsflow.datastorepath import DatastoreSrcPath
-from dsflow.beamutil import create_multi_datasource_reader
+from dsflow.lib.datastorepath import DatastoreSrcPath
+from dsflow.lib.beamutil import create_multi_datasource_reader
 
 
 class DeleteOptions(GoogleCloudOptions):
@@ -17,18 +15,19 @@ class DeleteOptions(GoogleCloudOptions):
 
 class EntityToKey(beam.DoFn):
     def process(self, element):
-        e = element
-        if e.key.path[-1].kind.startswith('__'):
+        k = element.key
+        p = list(k.path_elements)
+        if len(p) % 2 != 0:
+            # incomplete key
             return []
-        return[e.key]
+        if p[0].startswith('__'):
+            return []
+        return [k]
 
 
 def run():
     from os import path
     import sys
-
-    # DirectRunner で実行した際に datastore パッケージを見つけるため
-    sys.path.insert(0, path.dirname(path.abspath(__file__)))
 
     args = sys.argv[1:]
     options = DeleteOptions(args)

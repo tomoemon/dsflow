@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import unicode_literals
+import logging
 import apache_beam as beam
 from apache_beam.io import WriteToText
 from apache_beam.options.pipeline_options import GoogleCloudOptions
-import logging
-from dsflow.datastore.helpers import entity_from_protobuf
-from dsflow.datastorepath import DatastoreSrcPath
-from dsflow.beamutil import create_multi_datasource_reader, OptionalProcess
+from dsflow.lib.datastorepath import DatastoreSrcPath
+from dsflow.lib.beamutil import create_multi_datasource_reader, OptionalProcess
 
 
 class RawFormat(beam.DoFn):
@@ -19,13 +16,11 @@ class JsonFormat(beam.DoFn):
     @classmethod
     def format_types(cls, obj):
         import datetime
-        # ジョブ内で実行される場合は dsflow というパッケージが存在しない
-        # パッケージングされるのはこのファイルの階層以下
-        from datastore.key import Key
+        from google.cloud.datastore import key
 
         if isinstance(obj, datetime.datetime):
             return obj.isoformat()
-        elif isinstance(obj, Key):
+        elif isinstance(obj, key.Key):
             return {
                 "__key__": cls.format_key(obj)
             }
@@ -45,9 +40,9 @@ class JsonFormat(beam.DoFn):
     def process(self, element):
         import json
 
-        entity = entity_from_protobuf(element)
+        entity = element.to_client_entity()
         entity["__key__"] = self.format_key(entity.key)
-        return [json.dumps(entity, default=self.format_types)]
+        return [json.dumps(entity, ensure_ascii=False, default=self.format_types)]
 
 
 class DumpOptions(GoogleCloudOptions):
@@ -64,11 +59,7 @@ def run():
     from os import path
     import sys
 
-    # DirectRunner で実行した際に datastore パッケージを見つけるため
-    sys.path.insert(0, path.dirname(path.abspath(__file__)))
-
     args = sys.argv[1:]
-
     options = DumpOptions(args)
 
     if not options.src.project:

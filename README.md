@@ -6,7 +6,7 @@ Apache Beam フレームワーク上で構築されており、ローカルマ�
 # インストール手順
 
 下記、[Google Cloud Shell](https://cloud.google.com/shell/docs/) での操作を前提としています。
-Python 2.7, Google Cloud SDK がインストールされている環境であればどのマシンでも実行することができますが、Cloud Shell であれば基本的に環境依存を気にする必要がなく便利です。
+Python 3.7 以降, Google Cloud SDK がインストールされている環境であればどのマシンでも実行することができますが、Cloud Shell であれば基本的に環境依存を気にする必要がなく便利です。
 
 1. 処理を行いたい Datastore と同じプロジェクト内で Google Cloud Shell を開きます
 1. 下記のコマンドを実行します
@@ -16,7 +16,7 @@ export PATH="~/.local/bin:$PATH"
 ```
 
 ※ Google Cloud Shell ではなく、個人PC 等で実行する場合に事前に必要なもの
-- python 2.7.x
+- python 3.7.x
 - Google Cloud SDK (`gcloud` command)
 - application default credential (`gcloud auth application-default login`)
 

@@ -1,12 +1,27 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import logging
 import apache_beam as beam
 from apache_beam.options.pipeline_options import GoogleCloudOptions
-from apache_beam.io.gcp.datastore.v1.datastoreio import WriteToDatastore
-from dsflow.datastorepath import DatastoreSrcPath, DatastoreDstPath
-from dsflow.beamutil import create_multi_datasource_reader, OptionalProcess
+from apache_beam.io.gcp.datastore.v1new.datastoreio import WriteToDatastore
+from dsflow.lib.datastorepath import DatastoreSrcPath, DatastoreDstPath
+from dsflow.lib.beamutil import create_multi_datasource_reader, OptionalProcess
+
+
+def change_key(original_element, to_project, to_namespace, to_kind):
+    # see https://beam.apache.org/releases/pydoc/2.14.0/_modules/apache_beam/io/gcp/datastore/v1new/types.html#Key
+    k = original_element.key
+    p = list(k.path_elements)
+    if len(p) % 2 != 0:
+        # incomplete key
+        return []
+    if p[0].startswith('__'):
+        return []
+    k.project = to_project
+    k.namespace = to_namespace
+    if to_kind:
+        p[-2] = to_kind
+        k.path_elements = tuple(p)
+    return [original_element]
 
 
 class ChangeKind(beam.DoFn):
@@ -16,13 +31,7 @@ class ChangeKind(beam.DoFn):
         self.to_kind = to_kind
 
     def process(self, element):
-        e = element
-        if e.key.path[-1].kind.startswith('__'):
-            return []
-        e.key.partition_id.project_id = self.to_project
-        e.key.partition_id.namespace_id = self.to_namespace
-        e.key.path[-1].kind = self.to_kind
-        return [e]
+        return change_key(element, self.to_project, self.to_namespace, self.to_kind)
 
 
 class ChangeNamespace(beam.DoFn):
@@ -31,12 +40,7 @@ class ChangeNamespace(beam.DoFn):
         self.to_namespace = to_namespace
 
     def process(self, element):
-        e = element
-        if e.key.path[-1].kind.startswith('__'):
-            return []
-        e.key.partition_id.project_id = self.to_project
-        e.key.partition_id.namespace_id = self.to_namespace
-        return [e]
+        return change_key(element, self.to_project, self.to_namespace, None)
 
 
 class CopyOptions(GoogleCloudOptions):
@@ -50,9 +54,6 @@ class CopyOptions(GoogleCloudOptions):
 def run():
     from os import path
     import sys
-
-    # DirectRunner で実行した際に datastore パッケージを見つけるため
-    sys.path.insert(0, path.dirname(path.abspath(__file__)))
 
     args = sys.argv[1:]
     options = CopyOptions(args)
