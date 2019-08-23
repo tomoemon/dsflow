@@ -1,0 +1,12 @@
+$ gcloud app deploy app.yaml
+Services to deploy:
+
+descriptor:      [/mnt/c/Users/chopi/OneDrive/Code/ipo-notify/app.yaml]
+source:          [/mnt/c/Users/chopi/OneDrive/Code/ipo-notify]
+target project:  [ipo-notify]
+target service:  [default]
+target version:  [20180920t150426]
+target url:      [https://ipo-notify.appspot.com]
+
+
+Do you want to continue (Y/n)?
