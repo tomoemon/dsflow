@@ -1,14 +1,9 @@
 # coding: utf-8
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from inspect import signature
 import apache_beam as beam
-from apache_beam.io.gcp.datastore.v1.datastoreio import ReadFromDatastore
-try:
-    from inspect import signature
-except ImportError:
-    from funcsigs import signature
-from dsflow.datastore.helpers import entity_from_protobuf, entity_to_protobuf
-from dsflow.datastore.query import Query, _pb_from_query
+from apache_beam.io.gcp.datastore.v1new.datastoreio import ReadFromDatastore
+from google.cloud import datastore
+from apache_beam.io.gcp.datastore.v1new.types import Query, Entity
 
 
 def create_multi_datasource_reader(pipeline, project, namespace, kinds, keys_only=False):
@@ -17,17 +12,20 @@ def create_multi_datasource_reader(pipeline, project, namespace, kinds, keys_onl
 
     sources = []
     for kind in kinds:
-        query = Query(kind=kind)
-        if (keys_only):
-            query.keys_only()
-        query_pb = _pb_from_query(query)
+        # namespace を指定しない(==None)と [default] namespace が使われる
+        query = Query(project=project, namespace=namespace, kind=kind)
+        if keys_only:
+            # see 
+            # https://beam.apache.org/releases/pydoc/2.14.0/_modules/apache_beam/io/gcp/datastore/v1new/types.html#Query
+            # https://google-cloud-python.readthedocs.io/en/0.32.0/_modules/google/cloud/datastore/query.html#Query.keys_only
+            query.projection = ['__key__']
+        if not kind:
+            # kind を指定しない場合は明示的に __key__ asc でソートしないとエラーになる
+            query.order = ['__key__']
 
         description = 'ReadFromDatastore kind={}'.format(kind if kind else "*")
 
-        # namespace を指定しない(==None)と [default] namespace が使われる
-        s = pipeline | description >> ReadFromDatastore(project=project,
-                                                        query=query_pb,
-                                                        namespace=namespace)
+        s = pipeline | description >> ReadFromDatastore(query=query)
         sources.append(s)
     return sources
 
@@ -65,7 +63,7 @@ class OptionalProcess(beam.DoFn):
                 self.func_name = func.__name__
                 self.local_dict = local_dict
 
-            self.local_dict["__dsflow_element__"] = entity_from_protobuf(element)
+            self.local_dict["__dsflow_element__"] = element.to_client_entity()
             result = eval("{}(__dsflow_element__)".format(self.func_name), self.local_dict)
-            return [entity_to_protobuf(e) for e in result]
+            return [Entity.from_client_entity(e) for e in result]
         return [element]

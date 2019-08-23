@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import absolute_import
 import os
 from os import path
 import argparse
-from dsflow.envdefault import EnvDefault
+from dsflow.lib.envdefault import EnvDefault
 from dsflow import dsdump
 from dsflow import dscopy
 from dsflow import dsdelete
@@ -107,7 +105,7 @@ def add_dataflow_arguments(parser, is_direct_runner):
         parser.set_defaults(runner='DataflowRunner')
 
     # "setup.py" という名前のファイルじゃないとエラーになる
-    runtime_setup_path = path.join(path.dirname(path.abspath(__file__)), "setup.py")
+    runtime_setup_path = path.join(path.dirname(path.dirname(path.abspath(__file__))), "setup.py")
     parser.set_defaults(setup_file=runtime_setup_path)
 
 

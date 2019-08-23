@@ -6,17 +6,17 @@ Apache Beam フレームワーク上で構築されており、ローカルマ�
 # インストール手順
 
 下記、[Google Cloud Shell](https://cloud.google.com/shell/docs/) での操作を前提としています。
-Python 2.7, Google Cloud SDK がインストールされている環境であればどのマシンでも実行することができますが、Cloud Shell であれば基本的に環境依存を気にする必要がなく便利です。
+Python 3.7 以降, Google Cloud SDK がインストールされている環境であればどのマシンでも実行することができますが、Cloud Shell であれば基本的に環境依存を気にする必要がなく便利です。
 
 1. 処理を行いたい Datastore と同じプロジェクト内で Google Cloud Shell を開きます
 1. 下記のコマンドを実行します
 ```sh
-pip install --user git+https://github.com/tomoemon/dsflow.git
+pip3 install --user git+https://github.com/tomoemon/dsflow.git
 export PATH="~/.local/bin:$PATH"
 ```
 
 ※ Google Cloud Shell ではなく、個人PC 等で実行する場合に事前に必要なもの
-- python 2.7.x
+- python 3.7.x
 - Google Cloud SDK (`gcloud` command)
 - application default credential (`gcloud auth application-default login`)
 
@@ -59,7 +59,8 @@ Datastore は大量のデータ一括操作をサポートしていないため�
   - `//{NAMESPACE}` のように KIND を省略して名前空間全体を指定することも可能です（名前空間ごとのコピーや削除を行う場合）
   - デフォルトネームスペースは `@default` と指定します
   - `src` と `dst` で異なる `{PROJECT_ID}` を指定することも可能です。その場合は各プロジェクトの IAM 設定で、実行ユーザのアカウント (`dsflowl` の場合)、または Dataflow ジョブを実行する Service Accout  (`dsflow` の場合) に適切な権限を割り当ててください（[参考リンク](https://cloud.google.com/dataflow/security-and-permissions#google-cloud-platform-account)）
-
+-- `--mapper`
+  - 任意のロジックで Entity を書き換えるためのマップ処理を Python の関数として定義できます。copy, rename, dump 時に適用されます。関数の内容はファイル名ではなく文字列として渡してください。下記 copy の実行例を参照
    
 
 ## dsflow コマンド用オプション
@@ -115,6 +116,13 @@ dsflowl copy \
       -P {PROJECT_NAME} \
       //@default //staging
       --clear_dst
+
+- 例： `default` Namespace に存在する `User` Kind を独自のマップ処理をかけた上で `default` Namespace の `User2` Kind にコピーする場合
+
+      dsflowl copy \
+      -P {PROJECT_NAME} \
+      --mapper "$(cat scripts/sample_mapper.py)" \
+      //@default/User //@default/User2
 
 ## delete
 
