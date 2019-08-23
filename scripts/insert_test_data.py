@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import absolute_import
 import argparse
+import random
 from google.cloud import datastore
 
 
 def insert(args):
     client = datastore.Client(args.project)
-
+    entities = []
     for i in range(args.count):
         key = client.key(args.kind, "{}".format(i), namespace=args.namespace)
         entity = datastore.Entity(key)
-        entity["Name"] = u"great person {}".format(i * 10)
-        entity["Email"] = u"address{}@xyz.com".format(i * 2 * 10)
-        client.put(entity)
+        entity["Name"] = "great person {}".format(i * 10)
+        entity["Email"] = "address{}@xyz.com".format(i * 2 * 10)
+        entity["Age"] = random.randint(0, 99)
+        entities.append(entity)
+    client.put_multi(entities)
 
 
 if __name__ == '__main__':
