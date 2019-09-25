@@ -26,7 +26,6 @@ class EntityToKey(beam.DoFn):
 
 
 def run():
-    from os import path
     import sys
 
     args = sys.argv[1:]
