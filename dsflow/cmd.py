@@ -167,6 +167,7 @@ def run_local(args):
 
 
 def execute_commands(commands):
+    os.environ["PYTHONPATH"] = path.dirname(path.abspath(__file__))
     for cmd in commands:
         ret = os.system(cmd)
         if ret != 0:
