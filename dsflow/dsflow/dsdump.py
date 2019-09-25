@@ -3,8 +3,8 @@ import logging
 import apache_beam as beam
 from apache_beam.io import WriteToText
 from apache_beam.options.pipeline_options import GoogleCloudOptions
-from dsflow.lib.datastorepath import DatastoreSrcPath
-from dsflow.lib.beamutil import create_multi_datasource_reader, OptionalProcess
+from .lib.datastorepath import DatastoreSrcPath
+from .lib.beamutil import create_multi_datasource_reader, OptionalProcess
 
 
 class RawFormat(beam.DoFn):

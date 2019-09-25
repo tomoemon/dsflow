@@ -3,8 +3,8 @@ import logging
 import apache_beam as beam
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.io.gcp.datastore.v1new.datastoreio import WriteToDatastore
-from dsflow.lib.datastorepath import DatastoreSrcPath, DatastoreDstPath
-from dsflow.lib.beamutil import create_multi_datasource_reader, OptionalProcess
+from .lib.datastorepath import DatastoreSrcPath, DatastoreDstPath
+from .lib.beamutil import create_multi_datasource_reader, OptionalProcess
 
 
 

@@ -3,10 +3,10 @@ import os
 from os import path
 import sys
 import argparse
-from dsflow.lib.envdefault import EnvDefault
-from dsflow import dsdump
-from dsflow import dscopy
-from dsflow import dsdelete
+from .lib.envdefault import EnvDefault
+from . import dsdump
+from . import dscopy
+from . import dsdelete
 
 
 class ArgumentError(Exception):
