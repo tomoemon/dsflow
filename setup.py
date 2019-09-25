@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import sys
 import setuptools
@@ -8,7 +8,7 @@ pytest_runner = ['pytest-runner'] if needs_pytest else []
 
 setuptools.setup(
     name='dsflow',
-    version='0.4.1',
+    version='0.4.2',
     author="tomoemon",
     install_requires=[
         "apache_beam[gcp]==2.14.0",
