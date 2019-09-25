@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from os import path
+import sys
 import argparse
 from dsflow.lib.envdefault import EnvDefault
 from dsflow import dsdump
@@ -57,7 +58,7 @@ def format_command_arg(positional_list, optional_dict):
 
 def command_dump(args, parsers):
     arg_string = format_dataflow_arg(args, parsers["dump"])
-    return ["python -m dsflow.dsdump " + arg_string]
+    return [sys.executable + " -m dsflow.dsdump " + arg_string]
 
 
 def command_copy(args, parsers):
@@ -71,12 +72,12 @@ def command_copy(args, parsers):
         delete_command = command_delete(delete_args, parsers)
 
     arg_string = format_dataflow_arg(args, parsers["copy"], ["clear_dst"])
-    return delete_command + ["python -m dsflow.dscopy " + arg_string]
+    return delete_command + [sys.executable + " -m dsflow.dscopy " + arg_string]
 
 
 def command_delete(args, parsers):
     arg_string = format_dataflow_arg(args, parsers["delete"])
-    return ["python -m dsflow.dsdelete " + arg_string]
+    return [sys.executable + " -m dsflow.dsdelete " + arg_string]
 
 
 def command_rename(args, parsers):
@@ -145,7 +146,7 @@ def parse(args, is_direct_runner):
             return args._formatter(args, subparsers.choices)
         except ArgumentError as e:
             parser.print_help()
-            print(u"\nError: " + unicode(e))
+            print(u"\nError: " + str(e))
     else:
         parser.print_help()
     return []
