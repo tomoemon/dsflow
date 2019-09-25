@@ -106,7 +106,7 @@ def add_dataflow_arguments(parser, is_direct_runner):
         parser.set_defaults(runner='DataflowRunner')
 
     # "setup.py" という名前のファイルじゃないとエラーになる
-    runtime_setup_path = path.join(path.dirname(path.dirname(path.abspath(__file__))), "setup.py")
+    runtime_setup_path = path.join(path.dirname(path.abspath(__file__)), "setup.py")
     parser.set_defaults(setup_file=runtime_setup_path)
 
 
