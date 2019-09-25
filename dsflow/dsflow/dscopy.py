@@ -7,7 +7,6 @@ from .lib.datastorepath import DatastoreSrcPath, DatastoreDstPath
 from .lib.beamutil import create_multi_datasource_reader, OptionalProcess
 
 
-
 class ChangeKey(beam.DoFn):
     def __init__(self, to_project, to_namespace, to_kind):
         self.to_project = to_project
