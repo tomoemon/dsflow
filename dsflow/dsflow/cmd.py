@@ -58,7 +58,7 @@ def format_command_arg(positional_list, optional_dict):
 
 def command_dump(args, parsers):
     arg_string = format_dataflow_arg(args, parsers["dump"])
-    return [sys.executable + " -m dsflow.dsdump " + arg_string]
+    return [sys.executable + " -m dsflow.dsflow.dsdump " + arg_string]
 
 
 def command_copy(args, parsers):
@@ -72,12 +72,12 @@ def command_copy(args, parsers):
         delete_command = command_delete(delete_args, parsers)
 
     arg_string = format_dataflow_arg(args, parsers["copy"], ["clear_dst"])
-    return delete_command + [sys.executable + " -m dsflow.dscopy " + arg_string]
+    return delete_command + [sys.executable + " -m dsflow.dsflow.dscopy " + arg_string]
 
 
 def command_delete(args, parsers):
     arg_string = format_dataflow_arg(args, parsers["delete"])
-    return [sys.executable + " -m dsflow.dsdelete " + arg_string]
+    return [sys.executable + " -m dsflow.dsflow.dsdelete " + arg_string]
 
 
 def command_rename(args, parsers):
