@@ -3,10 +3,10 @@ import os
 from os import path
 import sys
 import argparse
-from dsflow.lib.envdefault import EnvDefault
-from dsflow import dsdump
-from dsflow import dscopy
-from dsflow import dsdelete
+from .dsflow.lib.envdefault import EnvDefault
+from .dsflow import dsdump
+from .dsflow import dscopy
+from .dsflow import dsdelete
 
 
 class ArgumentError(Exception):
@@ -167,6 +167,17 @@ def run_local(args):
 
 
 def execute_commands(commands):
+    # ホスト環境上にインストールされたパッケージのパスに合わせて
+    # 素直に
+    #     python -m dsflow.dsflow.dscopy
+    # と実行すると、リモート環境上でも同様に dsflow.dsflow.dscopy という
+    # 名前で実行しようとし、Module not found になってしまう
+    # ※なぜならリモート環境上では実行時に指定した setup.py ファイル以下の階層が
+    # 　パッケージングされてデプロイされるため、dsflow.dscopy という階層になる
+    # そのため、ホスト環境上でも
+    #     python -m dsflow.dscopy
+    # と実行する必要があり、dsflow.dscopy を発見できるように PYTHONPATH を変更する
+    os.environ["PYTHONPATH"] = path.dirname(path.abspath(__file__))
     for cmd in commands:
         ret = os.system(cmd)
         if ret != 0:

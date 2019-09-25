@@ -3,8 +3,8 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.io.gcp.datastore.v1new.datastoreio import DeleteFromDatastore
 import logging
-from dsflow.lib.datastorepath import DatastoreSrcPath
-from dsflow.lib.beamutil import create_multi_datasource_reader
+from .lib.datastorepath import DatastoreSrcPath
+from .lib.beamutil import create_multi_datasource_reader
 
 
 class DeleteOptions(GoogleCloudOptions):
@@ -26,7 +26,6 @@ class EntityToKey(beam.DoFn):
 
 
 def run():
-    from os import path
     import sys
 
     args = sys.argv[1:]
