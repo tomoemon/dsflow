@@ -11,7 +11,7 @@ setuptools.setup(
     version='0.4.2',
     author="tomoemon",
     install_requires=[
-        "apache_beam[gcp]==2.14.0",
+        "apache_beam[gcp]==2.22.0",
     ],
     setup_requires=[] + pytest_runner,
     tests_require=["pytest"],
