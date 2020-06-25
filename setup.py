@@ -8,7 +8,7 @@ pytest_runner = ['pytest-runner'] if needs_pytest else []
 
 setuptools.setup(
     name='dsflow',
-    version='0.4.2',
+    version='0.4.3',
     author="tomoemon",
     install_requires=[
         "apache_beam[gcp]==2.22.0",
