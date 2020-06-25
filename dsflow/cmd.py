@@ -90,6 +90,7 @@ def add_dataflow_arguments(parser, is_direct_runner):
     if is_direct_runner:
         parser.set_defaults(runner='DirectRunner')
     else:
+        parser.add_argument('-R', '--region', action=EnvDefault, envvar='DS_REGION')
         parser.add_argument('-T', '--temp_location', action=EnvDefault, envvar='DS_TEMP_LOCATION')
         parser.add_argument('-S', '--staging_location', action=EnvDefault, envvar='DS_STAGING_LOCATION')
         parser.add_argument('--region',

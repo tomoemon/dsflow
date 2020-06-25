@@ -69,6 +69,8 @@ Datastore は大量のデータ一括操作をサポートしていないため�
   - GCS のパス (`gs://{BUCKET}/{TEMP_PREFIX}`)。Dataflow のジョブ実行中の一時ファイル置き場
 - `-S --staging_location  (環境変数 DS_STAGING_LOCATION でも指定可能)`
   - GCS のパス (`gs://{BUCKET}/{STAGING_PREFIX}`)。Dataflow のジョブ実行時に使用するパッケージのアップロード先
+- `-R --region  (環境変数 DS_REGION でも指定可能)`
+  - Dataflow を実行する Region を指定する
 
 ## サブコマンド群
 
